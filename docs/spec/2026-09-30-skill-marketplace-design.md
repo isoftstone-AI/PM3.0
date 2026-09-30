@@ -2,8 +2,8 @@
 
 > 日期：2026-09-30
 > 目标仓库：https://github.com/isoftstone-AI/PM3.0.git（已确认存在且为空仓库）
-> 源目录：`REDACTED-PATH/work/个人积累/ai/.claude`（个人 skill/agent 工作区，gitee 私有仓库）
-> 源 CLAUDE.md：`REDACTED-PATH/work/个人积累/ai/CLAUDE.md`
+> 源目录：`<local-ai-workspace>/.claude`（个人 skill/agent 工作区，gitee 私有仓库）
+> 源 CLAUDE.md：`<local-ai-workspace>/CLAUDE.md`
 
 ---
 
@@ -75,10 +75,10 @@ PM3.0/  (github.com/isoftstone-AI/PM3.0)
 
 | 位置 | 处理 |
 |------|------|
-| CLAUDE.md「登录禅道」「登录系统测试」两节 | 整节删除（账密、内网 IP `REDACTED-IP152.128`、playwright 引用） |
+| CLAUDE.md「登录禅道」「登录系统测试」两节 | 整节删除（账密、内网 IP `<intranet-ip>`、playwright 引用） |
 | CLAUDE.md 工作流规则中 gbrain 引用 | 删除该行（个人私有 MCP，入项项目不存在） |
 | CLAUDE.md 中 graphify 引用（`~/.claude/skills/graphify`） | 删除该行（个人全局 skill） |
-| pm-mobile-migration SKILL.md 铁律 2 硬编码 `REDACTED-PATH/work/pm/pm3.0_frontend` | 改写为"PC 仓库根目录（由调用方工作目录或输入参数确定）" |
+| pm-mobile-migration SKILL.md 铁律 2 硬编码 `<local-pc-repo>` | 改写为"PC 仓库根目录（由调用方工作目录或输入参数确定）" |
 
 ### 4.2 开发产物剔除（不复制）
 
@@ -94,7 +94,7 @@ PM3.0/  (github.com/isoftstone-AI/PM3.0)
 脚本对**产出文件**逐一 grep 黑名单，命中即**报错终止**（非静默跳过）：
 
 ```
-REDACTED、REDACTED、REDACTED、REDACTED、REDACTED-IP、REDACTED-PATH
+<pwd-1>、<pwd-2>、<user-1>、<user-2>、<intranet-ip>、<local-home>
 ```
 
 规则固化在脚本中 —— CLAUDE.md 未来更新可能重新带入凭据，只有脚本化才能持续拦截。

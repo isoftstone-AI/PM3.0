@@ -19,7 +19,7 @@ LEAK_PATTERNS = [
 ]
 
 # scan_leaks 只扫产出内容；scripts/ 自身含黑名单字符串，必须排除
-SCAN_TARGETS = ["plugins", "README.md"]
+SCAN_TARGETS = ["plugins", "README.md", "docs"]
 
 
 def _iter_content_files(repo: Path):
