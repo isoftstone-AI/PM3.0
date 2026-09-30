@@ -75,3 +75,86 @@ def clean_file(path: Path, edits: list) -> int:
         count += n
     path.write_text(text.rstrip() + "\n", encoding="utf-8")
     return count
+
+
+HOME = Path.home()
+DEFAULT_AI_ROOT = HOME / "work" / "个人积累" / "ai"
+DEFAULT_GLOBAL_ROOT = HOME / ".claude"
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
+
+# (源相对路径, 仓库内目标相对路径, 源根, 目录级排除名)
+COPY_PLAN = [
+    ("skills/generate-prd-guide", "plugins/pm3-frontend/skills/generate-prd-guide", "ai",
+     frozenset({"temp", "OPTIMIZATION-PLAN.md", "OPTIMIZATION-REPORT.md", "REVISION-SUMMARY.md"})),
+    ("skills/generator-dev-plan", "plugins/pm3-frontend/skills/generator-dev-plan", "ai",
+     frozenset({"tasks"})),
+    ("skills/generate-api", "plugins/pm3-frontend/skills/generate-api", "ai", frozenset()),
+    ("skills/scene-list", "plugins/pm3-frontend/skills/scene-list", "ai", frozenset()),
+    ("skills/scene-form", "plugins/pm3-frontend/skills/scene-form", "ai", frozenset()),
+    ("skills/scene-detail", "plugins/pm3-frontend/skills/scene-detail", "ai", frozenset()),
+    ("skills/scene-approval", "plugins/pm3-frontend/skills/scene-approval", "ai", frozenset()),
+    ("skills/pattern-upload", "plugins/pm3-frontend/skills/pattern-upload", "ai", frozenset()),
+    ("skills/skill-generator", "plugins/pm3-frontend/skills/skill-generator", "ai", frozenset()),
+    ("skills/create-develop-plan-skill", "plugins/pm3-frontend/skills/create-develop-plan-skill", "ai", frozenset()),
+    ("agents/workflow-agent", "plugins/pm3-frontend/skills/workflow-agent", "ai",
+     frozenset({"logs", "skills"})),
+    ("rules", "plugins/pm3-frontend/templates/rules", "ai", frozenset()),
+    ("CLAUDE.md", "plugins/pm3-frontend/templates/CLAUDE.md", "ai", frozenset()),
+    ("skills/pm-mobile-migration", "plugins/pm3-mobile/skills/pm-mobile-migration", "global", frozenset()),
+    ("skills/isoftstone-debug-recovery", "plugins/pm3-common/skills/isoftstone-debug-recovery", "global", frozenset()),
+]
+
+
+def copy_tree(src: Path, dst: Path, extra_excludes: frozenset = frozenset()) -> None:
+    """Full rebuild: wipe dst, then copy ignoring .DS_Store and extra_excludes."""
+    if dst.exists():
+        shutil.rmtree(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns(".DS_Store", *extra_excludes))
+
+
+def sync(ai_root: Path, global_root: Path, repo: Path,
+         plan=COPY_PLAN, edits=CONTENT_EDITS) -> list[str]:
+    roots = {"ai": ai_root, "global": global_root}
+    copied = []
+    for src_rel, dst_rel, root_name, excludes in plan:
+        src = roots[root_name] / src_rel
+        dst = repo / dst_rel
+        if not src.exists():
+            raise FileNotFoundError(f"missing source: {src}")
+        if src.is_file():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+        else:
+            copy_tree(src, dst, excludes)
+        copied.append(dst_rel)
+    for rel, file_edits in edits.items():
+        p = repo / rel
+        if not p.exists():
+            raise FileNotFoundError(f"expected file for cleaning missing: {p}")
+        clean_file(p, file_edits)
+    hits = scan_leaks(repo)
+    if hits:
+        print("LEAK SCAN FAILED — push is forbidden:", file=sys.stderr)
+        for h in hits:
+            print(f"  {h}", file=sys.stderr)
+        sys.exit(2)
+    return copied
+
+
+def main(argv=None) -> None:
+    import argparse
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--ai-root", type=Path, default=DEFAULT_AI_ROOT)
+    ap.add_argument("--global-root", type=Path, default=DEFAULT_GLOBAL_ROOT)
+    ap.add_argument("--repo", type=Path, default=DEFAULT_REPO)
+    args = ap.parse_args(argv)
+    copied = sync(args.ai_root, args.global_root, args.repo)
+    print(f"synced {len(copied)} entries, leak scan clean:")
+    for c in copied:
+        print(f"  -> {c}")
+
+
+if __name__ == "__main__":
+    main()

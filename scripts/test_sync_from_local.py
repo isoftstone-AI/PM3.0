@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from sync_from_local import CONTENT_EDITS, LEAK_PATTERNS, clean_file, scan_leaks
+from sync_from_local import CONTENT_EDITS, LEAK_PATTERNS, clean_file, copy_tree, scan_leaks, sync
 
 
 class TestScanLeaks(unittest.TestCase):
@@ -113,6 +113,86 @@ class TestCleanContent(unittest.TestCase):
             p.write_text(SAMPLE_CLAUDE_MD, encoding="utf-8")
             n = clean_file(p, CONTENT_EDITS["plugins/pm3-frontend/templates/CLAUDE.md"])
             self.assertGreaterEqual(n, 4)
+
+
+def make_fake_source(ai_root: Path, global_root: Path):
+    (ai_root / "skills" / "demo").mkdir(parents=True)
+    (ai_root / "skills" / "demo" / "SKILL.md").write_text("v1", encoding="utf-8")
+    (ai_root / "skills" / "demo" / "temp").mkdir()
+    (ai_root / "skills" / "demo" / "temp" / "junk.md").write_text("junk", encoding="utf-8")
+    (ai_root / "skills" / "demo" / ".DS_Store").write_bytes(b"\x00")
+    (ai_root / "CLAUDE.md").write_text("# rules\n", encoding="utf-8")
+    (global_root / "skills" / "mobile").mkdir(parents=True)
+    (global_root / "skills" / "mobile" / "SKILL.md").write_text("mobile", encoding="utf-8")
+
+
+FAKE_PLAN = [
+    ("skills/demo", "plugins/pf/skills/demo", "ai", frozenset({"temp"})),
+    ("CLAUDE.md", "plugins/pf/templates/CLAUDE.md", "ai", frozenset()),
+    ("skills/mobile", "plugins/pm/skills/mobile", "global", frozenset()),
+]
+
+
+class TestSync(unittest.TestCase):
+    def setUp(self):
+        self._td = tempfile.TemporaryDirectory()
+        base = Path(self._td.name)
+        self.ai_root = base / "ai"
+        self.global_root = base / "global"
+        self.repo = base / "repo"
+        make_fake_source(self.ai_root, self.global_root)
+
+    def tearDown(self):
+        self._td.cleanup()
+
+    def _sync(self, **kw):
+        defaults = dict(plan=FAKE_PLAN, edits={})
+        defaults.update(kw)
+        return sync(self.ai_root, self.global_root, self.repo, **defaults)
+
+    def test_copies_plan_and_excludes(self):
+        self._sync()
+        demo = self.repo / "plugins/pf/skills/demo"
+        self.assertTrue((demo / "SKILL.md").exists())
+        self.assertFalse((demo / "temp").exists())
+        self.assertFalse((demo / ".DS_Store").exists())
+        self.assertTrue((self.repo / "plugins/pf/templates/CLAUDE.md").exists())
+        self.assertTrue((self.repo / "plugins/pm/skills/mobile/SKILL.md").exists())
+
+    def test_full_rebuild_removes_stale(self):
+        self._sync()
+        stale = self.repo / "plugins/pf/skills/demo/stale.md"
+        stale.write_text("old", encoding="utf-8")
+        (self.ai_root / "skills/demo/SKILL.md").write_text("v2", encoding="utf-8")
+        self._sync()
+        self.assertFalse(stale.exists())
+        self.assertIn("v2", (self.repo / "plugins/pf/skills/demo/SKILL.md").read_text(encoding="utf-8"))
+
+    def test_applies_content_edits(self):
+        (self.ai_root / "CLAUDE.md").write_text("x REDACTED y\n", encoding="utf-8")
+        edits = {"plugins/pf/templates/CLAUDE.md": [(re.compile(r"REDACTED"), "REDACTED")]}
+        self._sync(edits=edits)
+        self.assertIn("REDACTED", (self.repo / "plugins/pf/templates/CLAUDE.md").read_text(encoding="utf-8"))
+
+    def test_exits_2_when_leak_not_editable(self):
+        (self.global_root / "skills/mobile/SKILL.md").write_text("pwd=REDACTED", encoding="utf-8")
+        with self.assertRaises(SystemExit) as cm:
+            self._sync()
+        self.assertEqual(cm.exception.code, 2)
+
+    def test_missing_source_raises(self):
+        (self.ai_root / "skills/demo").rename(self.ai_root / "skills/demo-bak")
+        with self.assertRaises(FileNotFoundError):
+            self._sync()
+
+    def test_copy_tree_removes_existing_dst(self):
+        dst = self.repo / "dst"
+        dst.mkdir(parents=True)
+        (dst / "old.txt").write_text("old", encoding="utf-8")
+        src = self.ai_root / "skills/demo"
+        copy_tree(src, dst, frozenset())
+        self.assertFalse((dst / "old.txt").exists())
+        self.assertTrue((dst / "SKILL.md").exists())
 
 
 if __name__ == "__main__":
