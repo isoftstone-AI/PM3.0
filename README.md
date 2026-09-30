@@ -143,7 +143,7 @@ cp -r "$CACHE/templates/rules/"* "$REPO/.claude/rules/"
 | `scene-list` / `scene-form` / `scene-detail` / `scene-approval` | 页面代码生成器（列表/表单/详情/审批）。自然语言触发（"开发列表页"、"生成表单页"）或 `/scene-list` 等命令；输入 PRD + API 文档 + 设计稿，基于上线代码模板生成完整页面代码（`index.tsx` + `useIndex` + `api/` + Section 组件等）。scene-approval 前提：业务的查看/编辑组件已存在。消费 generator-dev-plan 的开发方案作为输入 |
 | `pattern-upload` | 需求涉及附件上传/下载/预览时触发；统一使用 Upload 组件 + `onlyShowFileList` 控制编辑/只读态，禁止混用多个上传组件 |
 | `skill-generator` / `create-develop-plan-skill` | meta-skill：为新项目从零生成配套的设计方案/开发方案生成器 |
-| `templates/`（CLAUDE.md + rules） | PM3.0 前端项目规范，入项时落盘到项目根目录 |
+| `templates/`（CLAUDE.md + rules） | PM3.0 前端项目规范，入项时落盘到项目根目录。CLAUDE.md 中登录账密为占位符（`<填写账号>` 等），落盘后自行填写，未填写前 Claude 会跳过登录节 |
 
 ### 其他 plugin
 
@@ -174,6 +174,7 @@ git diff                              # 人工复核（重点：清洗结果与�
 git add plugins && git commit && git push
 ```
 
-- 泄漏扫描黑名单内置在 `scripts/sync_from_local.py` 的 `LEAK_PATTERNS`；扫描失败（退出码 2）禁止 push
+- 泄漏扫描黑名单在 `scripts/leak_patterns.local`（git 忽略，不入库；从 `leak_patterns.example` 复制后填入真实值），文件缺失时回退最小默认集；扫描失败（退出码 2）禁止 push
+- push 前执行 `claude plugin validate plugins/pm3-frontend`（另外两个同理）校验 skill frontmatter（如 argument-hint 以 `[` 开头必须加引号，否则 YAML 解析失败、元数据静默丢失）
 - 新增 skill 时：在脚本 `COPY_PLAN` 加一行，跑同步
 - 结构设计文档：`docs/spec/2026-09-30-skill-marketplace-design.md`

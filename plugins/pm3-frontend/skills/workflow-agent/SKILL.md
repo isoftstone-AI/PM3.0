@@ -5,7 +5,7 @@ description: |
   自动检测 skill 是否存在，不存在时引导创建，创建后引导用户提供参数并执行。
   触发词：设计方案、开发方案、生成API、接口代码、/design-plan、/dev-plan、/api-gen
 arguments: scene, params
-argument-hint: [design-plan|dev-plan|api-gen] [参数...]
+argument-hint: "[design-plan|dev-plan|api-gen] [参数...]"
 ---
 
 # Workflow Agent — 工作流代理

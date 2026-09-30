@@ -254,3 +254,16 @@ const state = reactive({ unitCost: undefined });
 
 - 按模块查看字段 → `.claude/skills/scene-form/references/form-map.md`
 - 按字段查看组件 → `.claude/skills/scene-form/references/form-map2.md`
+
+## 登录禅道
+> 入项后请填写以下地址与账密；未填写前跳过本节，不得使用占位符尝试登录。
+地址 <禅道地址>
+账号 <填写账号>
+密码 <填写密码>
+使用工具 playwright
+
+## 登录系统测试
+> 入项后请填写以下账密；未填写前跳过本节，不得使用占位符尝试登录。
+账号 <填写账号>
+密码 <填写密码>
+使用工具 playwright

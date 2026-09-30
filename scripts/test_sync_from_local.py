@@ -1,58 +1,18 @@
+import json
 import re
 import tempfile
 import unittest
 from pathlib import Path
 
-from sync_from_local import CONTENT_EDITS, LEAK_PATTERNS, clean_file, copy_tree, scan_leaks, sync
+from sync_from_local import (CONTENT_EDITS, DEFAULT_AI_ROOT, PC_REPO_PATH,
+                             clean_file, copy_tree, load_leak_patterns, scan_leaks, sync)
 
+# 测试一律用假密值，真实账密不得出现在任何入库文件（含本测试）
+FAKE_PATTERNS = ["FAKE-PWD-1", "FAKE-USER-2", "/Users/fakehome"]
 
-class TestScanLeaks(unittest.TestCase):
-    def test_blacklist_matches_spec(self):
-        self.assertEqual(
-            LEAK_PATTERNS,
-            ["REDACTED", "REDACTED", "REDACTED", "REDACTED", "REDACTED-IP", "REDACTED-PATH"],
-        )
+SKIP_NOTE = "未填写前跳过本节，不得使用占位符尝试登录"
 
-    def test_clean_repo_passes(self):
-        with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
-            (repo / "plugins" / "demo").mkdir(parents=True)
-            (repo / "plugins" / "demo" / "a.md").write_text("hello world", encoding="utf-8")
-            (repo / "README.md").write_text("# store", encoding="utf-8")
-            self.assertEqual(scan_leaks(repo), [])
-
-    def test_leak_in_plugins_is_reported(self):
-        with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
-            (repo / "plugins" / "demo").mkdir(parents=True)
-            (repo / "plugins" / "demo" / "bad.md").write_text("pwd=REDACTED", encoding="utf-8")
-            hits = scan_leaks(repo)
-            self.assertEqual(len(hits), 1)
-            self.assertIn("REDACTED", hits[0])
-            self.assertIn("bad.md", hits[0])
-
-    def test_leak_in_readme_is_reported(self):
-        with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
-            (repo / "README.md").write_text("contact REDACTED", encoding="utf-8")
-            self.assertTrue(scan_leaks(repo))
-
-    def test_scripts_dir_is_not_scanned(self):
-        with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
-            (repo / "scripts").mkdir(parents=True)
-            (repo / "scripts" / "sync_from_local.py").write_text('P = ["REDACTED"]', encoding="utf-8")
-            self.assertEqual(scan_leaks(repo), [])
-
-    def test_binary_file_skipped(self):
-        with tempfile.TemporaryDirectory() as td:
-            repo = Path(td)
-            (repo / "plugins").mkdir()
-            (repo / "plugins" / "blob.bin").write_bytes(b"\x00\xff\xfe")
-            self.assertEqual(scan_leaks(repo), [])
-
-
-SAMPLE_CLAUDE_MD = """# PM 3.0 前端开发规范
+SAMPLE_CLAUDE_MD = f"""# PM 3.0 前端开发规范
 
 ## 工作流规则（重要）
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
@@ -63,21 +23,74 @@ When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` 
 - 技术栈 Vue 3
 
 ## 登录禅道
-地址 http://REDACTED-IP152.128
-账号 REDACTED
-密码 REDACTED
+地址 http://zentao.example.internal
+账号 fake-user-1
+密码 FAKE-PWD-1
 使用工具 playwright
 
 ## 登录系统测试
-账号 REDACTED
-密码 REDACTED
+账号 fake-user-2
+密码 FAKE-PWD-2
 使用工具 playwright
 """
 
-SAMPLE_PM_MOBILE = """## 铁律
+SAMPLE_PM_MOBILE = f"""## 铁律
 
-2. **PC 端代码必须读真实文件**（PC 仓库默认：`REDACTED-PATH/work/pm/pm3.0_frontend`，页面文件由输入参数 `<pc-vue-path>` 指定），不得凭记忆或描述推断字段与流程。
+2. **PC 端代码必须读真实文件**（PC 仓库默认：`{PC_REPO_PATH}`，页面文件由输入参数 `<pc-vue-path>` 指定），不得凭记忆或描述推断字段与流程。
 """
+
+
+class TestLoadPatterns(unittest.TestCase):
+    def test_loads_lines_skipping_comments_and_blank(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "patterns"
+            p.write_text("# comment\n\nSECRET-A\n  SECRET-B  \n", encoding="utf-8")
+            self.assertEqual(load_leak_patterns(p), ["SECRET-A", "SECRET-B"])
+
+    def test_missing_file_falls_back_to_home(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "nope"
+            self.assertEqual(load_leak_patterns(p), [str(Path.home())])
+
+
+class TestScanLeaks(unittest.TestCase):
+    def test_clean_repo_passes(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "plugins" / "demo").mkdir(parents=True)
+            (repo / "plugins" / "demo" / "a.md").write_text("hello world", encoding="utf-8")
+            (repo / "README.md").write_text("# store", encoding="utf-8")
+            self.assertEqual(scan_leaks(repo, FAKE_PATTERNS), [])
+
+    def test_leak_in_plugins_is_reported(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "plugins" / "demo").mkdir(parents=True)
+            (repo / "plugins" / "demo" / "bad.md").write_text("pwd=FAKE-PWD-1", encoding="utf-8")
+            hits = scan_leaks(repo, FAKE_PATTERNS)
+            self.assertEqual(len(hits), 1)
+            self.assertIn("FAKE-PWD-1", hits[0])
+            self.assertIn("bad.md", hits[0])
+
+    def test_leak_in_readme_is_reported(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "README.md").write_text("contact FAKE-USER-2", encoding="utf-8")
+            self.assertTrue(scan_leaks(repo, FAKE_PATTERNS))
+
+    def test_scripts_dir_is_not_scanned(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "scripts").mkdir(parents=True)
+            (repo / "scripts" / "sync_from_local.py").write_text('P = ["FAKE-PWD-1"]', encoding="utf-8")
+            self.assertEqual(scan_leaks(repo, FAKE_PATTERNS), [])
+
+    def test_binary_file_skipped(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "plugins").mkdir()
+            (repo / "plugins" / "blob.bin").write_bytes(b"\x00\xff\xfe")
+            self.assertEqual(scan_leaks(repo, FAKE_PATTERNS), [])
 
 
 class TestCleanContent(unittest.TestCase):
@@ -88,11 +101,16 @@ class TestCleanContent(unittest.TestCase):
             clean_file(p, CONTENT_EDITS[rel])
             return p.read_text(encoding="utf-8")
 
-    def test_claude_md_credentials_sections_removed(self):
+    def test_claude_md_credentials_blanked_for_user_fill(self):
         out = self._clean(SAMPLE_CLAUDE_MD, "plugins/pm3-frontend/templates/CLAUDE.md")
-        for forbidden in ("登录禅道", "登录系统测试", "REDACTED", "REDACTED",
-                          "REDACTED", "REDACTED", "REDACTED-IP152.128", "playwright"):
+        for forbidden in ("FAKE-PWD-1", "FAKE-PWD-2", "fake-user-1", "fake-user-2",
+                          "zentao.example.internal"):
             self.assertNotIn(forbidden, out)
+        # 章节结构保留，账密置为占位符，由入项用户自行填写；带跳过说明防误用
+        for placeholder in ("## 登录禅道", "## 登录系统测试", SKIP_NOTE,
+                            "地址 <禅道地址>", "账号 <填写账号>", "密码 <填写密码>"):
+            self.assertIn(placeholder, out)
+        self.assertIn("使用工具 playwright", out)
 
     def test_claude_md_personal_refs_removed(self):
         out = self._clean(SAMPLE_CLAUDE_MD, "plugins/pm3-frontend/templates/CLAUDE.md")
@@ -103,7 +121,7 @@ class TestCleanContent(unittest.TestCase):
     def test_pm_mobile_local_path_parameterized(self):
         out = self._clean(SAMPLE_PM_MOBILE,
                           "plugins/pm3-mobile/skills/pm-mobile-migration/SKILL.md")
-        self.assertNotIn("REDACTED-PATH", out)
+        self.assertNotIn(str(PC_REPO_PATH), out)
         self.assertIn("PC 仓库根目录由调用方工作目录或输入参数确定", out)
         self.assertIn("<pc-vue-path>", out)
 
@@ -112,10 +130,12 @@ class TestCleanContent(unittest.TestCase):
             p = Path(td) / "f.md"
             p.write_text(SAMPLE_CLAUDE_MD, encoding="utf-8")
             n = clean_file(p, CONTENT_EDITS["plugins/pm3-frontend/templates/CLAUDE.md"])
-            self.assertGreaterEqual(n, 4)
+            self.assertGreaterEqual(n, 4)  # graphify + gbrain + 两个登录节
 
     def test_evals_json_paths_parameterized(self):
-        sample = '{"prompt": "根据 @REDACTED-PATH/work/个人积累/ai/工程管理/api/openapi.yaml 生成"}'
+        sample = json.dumps(
+            {"prompt": f"根据 @{DEFAULT_AI_ROOT}/工程管理/api/openapi.yaml 生成"},
+            ensure_ascii=False)
         for rel in ("plugins/pm3-frontend/skills/generate-api/evals/evals.json",
                     "plugins/pm3-frontend/skills/generate-prd-guide/evals/evals.json"):
             with tempfile.TemporaryDirectory() as td:
@@ -123,7 +143,7 @@ class TestCleanContent(unittest.TestCase):
                 p.write_text(sample, encoding="utf-8")
                 clean_file(p, CONTENT_EDITS[rel])
                 out = p.read_text(encoding="utf-8")
-                self.assertNotIn("REDACTED-PATH", out, rel)
+                self.assertNotIn(str(DEFAULT_AI_ROOT), out, rel)
                 self.assertIn("<ai-workspace>", out, rel)
 
 
@@ -159,7 +179,7 @@ class TestSync(unittest.TestCase):
         self._td.cleanup()
 
     def _sync(self, **kw):
-        defaults = dict(plan=FAKE_PLAN, edits={})
+        defaults = dict(plan=FAKE_PLAN, edits={}, leak_patterns=FAKE_PATTERNS)
         defaults.update(kw)
         return sync(self.ai_root, self.global_root, self.repo, **defaults)
 
@@ -183,13 +203,13 @@ class TestSync(unittest.TestCase):
         self.assertIn("v2", (self.repo / "plugins/pf/skills/demo/SKILL.md").read_text(encoding="utf-8"))
 
     def test_applies_content_edits(self):
-        (self.ai_root / "CLAUDE.md").write_text("x REDACTED y\n", encoding="utf-8")
-        edits = {"plugins/pf/templates/CLAUDE.md": [(re.compile(r"REDACTED"), "REDACTED")]}
+        (self.ai_root / "CLAUDE.md").write_text("x FAKE-PWD-1 y\n", encoding="utf-8")
+        edits = {"plugins/pf/templates/CLAUDE.md": [(re.compile(r"FAKE-PWD-1"), "REDACTED")]}
         self._sync(edits=edits)
         self.assertIn("REDACTED", (self.repo / "plugins/pf/templates/CLAUDE.md").read_text(encoding="utf-8"))
 
     def test_exits_2_when_leak_not_editable(self):
-        (self.global_root / "skills/mobile/SKILL.md").write_text("pwd=REDACTED", encoding="utf-8")
+        (self.global_root / "skills/mobile/SKILL.md").write_text("pwd=FAKE-PWD-1", encoding="utf-8")
         with self.assertRaises(SystemExit) as cm:
             self._sync()
         self.assertEqual(cm.exception.code, 2)

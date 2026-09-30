@@ -3,23 +3,66 @@
 
 Real run (defaults):  python3 scripts/sync_from_local.py
 Test-only module functions are unit-tested in test_sync_from_local.py.
+
+泄漏扫描黑名单不入库：维护者在 scripts/leak_patterns.local（git 忽略）维护
+真实值，仓库只提交 leak_patterns.example 示例。
 """
 import re
 import shutil
 import sys
 from pathlib import Path
 
-LEAK_PATTERNS = [
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED",
-    "REDACTED-IP",
-    "REDACTED-PATH",
-]
+SCRIPT_DIR = Path(__file__).resolve().parent
+PATTERNS_LOCAL = SCRIPT_DIR / "leak_patterns.local"
+PATTERNS_EXAMPLE = SCRIPT_DIR / "leak_patterns.example"
 
-# scan_leaks 只扫产出内容；scripts/ 自身含黑名单字符串，必须排除
+# scan_leaks 只扫产出内容；scripts/ 自身含黑名单示例字符串，必须排除
 SCAN_TARGETS = ["plugins", "README.md", "docs", ".claude-plugin"]
+
+HOME = Path.home()
+DEFAULT_AI_ROOT = HOME / "work" / "个人积累" / "ai"
+DEFAULT_GLOBAL_ROOT = HOME / ".claude"
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
+PC_REPO_PATH = HOME / "work" / "pm" / "pm3.0_frontend"
+
+# 内容清洗：仓库内相对路径 -> [(编译正则, 替换文本), ...]
+# 涉及本机路径的正则一律由 HOME 运行时构造，不在代码里写明文
+CONTENT_EDITS = {
+    "plugins/pm3-frontend/templates/CLAUDE.md": [
+        # graphify 列表项 + 其无前缀续行
+        (re.compile(r"^- \*\*graphify\*\*[^\n]*\nWhen the user types `/graphify`[^\n]*\n", re.M), ""),
+        (re.compile(r"^- \*\*gbrain\*\*[^\n]*\n", re.M), ""),
+        # 登录章节保留结构，账密置空占位由入项用户自填；带跳过说明，避免用户侧
+        # Claude 把占位符当真实值尝试登录。真实值若漏进产出由 scan_leaks 闸门报错兜底
+        (re.compile(r"(## 登录禅道\n)地址 [^\n]*\n账号 [^\n]*\n密码 [^\n]*\n"),
+         r"\1> 入项后请填写以下地址与账密；未填写前跳过本节，不得使用占位符尝试登录。\n"
+         r"地址 <禅道地址>\n账号 <填写账号>\n密码 <填写密码>\n"),
+        (re.compile(r"(## 登录系统测试\n)账号 [^\n]*\n密码 [^\n]*\n"),
+         r"\1> 入项后请填写以下账密；未填写前跳过本节，不得使用占位符尝试登录。\n"
+         r"账号 <填写账号>\n密码 <填写密码>\n"),
+    ],
+    "plugins/pm3-mobile/skills/pm-mobile-migration/SKILL.md": [
+        (re.compile(rf"（PC 仓库默认：`{re.escape(str(PC_REPO_PATH))}`，页面文件由输入参数 `<pc-vue-path>` 指定）"),
+         "（PC 仓库根目录由调用方工作目录或输入参数确定，页面文件由输入参数 `<pc-vue-path>` 指定）"),
+    ],
+    # evals.json 示例提示词中的个人绝对路径 → 中性占位
+    "plugins/pm3-frontend/skills/generate-api/evals/evals.json": [
+        (re.compile(re.escape(str(DEFAULT_AI_ROOT))), "<ai-workspace>"),
+    ],
+    "plugins/pm3-frontend/skills/generate-prd-guide/evals/evals.json": [
+        (re.compile(re.escape(str(DEFAULT_AI_ROOT))), "<ai-workspace>"),
+    ],
+}
+
+
+def load_leak_patterns(path: Path = PATTERNS_LOCAL) -> list[str]:
+    """Load blacklist from git-ignored local file; fall back to minimal default."""
+    if path.exists():
+        lines = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()]
+        return [ln for ln in lines if ln and not ln.startswith("#")]
+    print(f"NOTE: {path} not found — using minimal default blacklist "
+          f"(copy {PATTERNS_EXAMPLE.name} and fill real values)", file=sys.stderr)
+    return [str(HOME)]
 
 
 def _iter_content_files(repo: Path):
@@ -36,7 +79,7 @@ def _iter_content_files(repo: Path):
             yield f
 
 
-def scan_leaks(repo: Path) -> list[str]:
+def scan_leaks(repo: Path, patterns: list[str]) -> list[str]:
     """Return leak reports for produced content. Empty list means clean."""
     hits = []
     for f in _iter_content_files(repo):
@@ -44,33 +87,10 @@ def scan_leaks(repo: Path) -> list[str]:
             text = f.read_text(encoding="utf-8")
         except (UnicodeDecodeError, ValueError):
             continue  # binary asset
-        for pat in LEAK_PATTERNS:
+        for pat in patterns:
             if pat in text:
                 hits.append(f"{f.relative_to(repo)}: contains {pat!r}")
     return hits
-
-
-# 内容清洗：仓库内相对路径 -> [(编译正则, 替换文本), ...]
-CONTENT_EDITS = {
-    "plugins/pm3-frontend/templates/CLAUDE.md": [
-        # graphify 列表项 + 其无前缀续行
-        (re.compile(r"^- \*\*graphify\*\*[^\n]*\nWhen the user types `/graphify`[^\n]*\n", re.M), ""),
-        (re.compile(r"^- \*\*gbrain\*\*[^\n]*\n", re.M), ""),
-        (re.compile(r"## 登录禅道\n.*?(?=\n## |\Z)", re.S), ""),
-        (re.compile(r"## 登录系统测试\n.*?(?=\n## |\Z)", re.S), ""),
-    ],
-    "plugins/pm3-mobile/skills/pm-mobile-migration/SKILL.md": [
-        (re.compile(r"（PC 仓库默认：`REDACTED-PATH/work/pm/pm3\.0_frontend`，页面文件由输入参数 `<pc-vue-path>` 指定）"),
-         "（PC 仓库根目录由调用方工作目录或输入参数确定，页面文件由输入参数 `<pc-vue-path>` 指定）"),
-    ],
-    # evals.json 示例提示词中的个人绝对路径 → 中性占位
-    "plugins/pm3-frontend/skills/generate-api/evals/evals.json": [
-        (re.compile(r"REDACTED-PATH/work/个人积累/ai"), "<ai-workspace>"),
-    ],
-    "plugins/pm3-frontend/skills/generate-prd-guide/evals/evals.json": [
-        (re.compile(r"REDACTED-PATH/work/个人积累/ai"), "<ai-workspace>"),
-    ],
-}
 
 
 def clean_file(path: Path, edits: list) -> int:
@@ -83,11 +103,6 @@ def clean_file(path: Path, edits: list) -> int:
     path.write_text(text.rstrip() + "\n", encoding="utf-8")
     return count
 
-
-HOME = Path.home()
-DEFAULT_AI_ROOT = HOME / "work" / "个人积累" / "ai"
-DEFAULT_GLOBAL_ROOT = HOME / ".claude"
-DEFAULT_REPO = Path(__file__).resolve().parent.parent
 
 # (源相对路径, 仓库内目标相对路径, 源根, 目录级排除名)
 COPY_PLAN = [
@@ -121,7 +136,9 @@ def copy_tree(src: Path, dst: Path, extra_excludes: frozenset = frozenset()) -> 
 
 
 def sync(ai_root: Path, global_root: Path, repo: Path,
-         plan=COPY_PLAN, edits=CONTENT_EDITS) -> list[str]:
+         plan=COPY_PLAN, edits=CONTENT_EDITS, leak_patterns=None) -> list[str]:
+    if leak_patterns is None:
+        leak_patterns = load_leak_patterns()
     roots = {"ai": ai_root, "global": global_root}
     copied = []
     for src_rel, dst_rel, root_name, excludes in plan:
@@ -140,7 +157,7 @@ def sync(ai_root: Path, global_root: Path, repo: Path,
         if not p.exists():
             raise FileNotFoundError(f"expected file for cleaning missing: {p}")
         clean_file(p, file_edits)
-    hits = scan_leaks(repo)
+    hits = scan_leaks(repo, leak_patterns)
     if hits:
         print("LEAK SCAN FAILED — push is forbidden:", file=sys.stderr)
         for h in hits:

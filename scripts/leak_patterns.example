@@ -1,0 +1,8 @@
+# 泄漏扫描黑名单示例 —— 每行一个模式，# 开头为注释
+# 真实值不入库：复制本文件为同目录 leak_patterns.local（已被 .gitignore 忽略），
+# 填入真实账密/内网地址/本机路径。sync_from_local.py 优先读取 .local；
+# 缺失时回退到最小默认集（仅本机 home 路径）。
+EXAMPLE-PASSWORD-1
+EXAMPLE-USER-1
+10.0.0.
+/Users/example-home
