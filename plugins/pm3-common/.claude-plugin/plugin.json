@@ -1,0 +1,6 @@
+{
+  "name": "pm3-common",
+  "version": "1.0.0",
+  "description": "通用 bug 修复编排（依赖 superpowers 与 agent-skills plugin）",
+  "author": { "name": "isoftstone-AI" }
+}

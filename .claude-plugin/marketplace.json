@@ -1,0 +1,24 @@
+{
+  "name": "PM3.0",
+  "owner": { "name": "isoftstone-AI" },
+  "plugins": [
+    {
+      "name": "pm3-frontend",
+      "source": "./plugins/pm3-frontend",
+      "description": "PM3.0 PC 前端开发套件：设计方案/开发方案/API 生成器、页面场景生成器、工作流代理、项目规范模板",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm3-mobile",
+      "source": "./plugins/pm3-mobile",
+      "description": "PM3.0 PC 页面迁移移动端 H5 的强制工作流（/pm-migrate）",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm3-common",
+      "source": "./plugins/pm3-common",
+      "description": "通用 bug 修复编排（依赖 superpowers 与 agent-skills plugin）",
+      "version": "1.0.0"
+    }
+  ]
+}

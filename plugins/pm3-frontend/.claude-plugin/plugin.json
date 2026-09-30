@@ -1,0 +1,6 @@
+{
+  "name": "pm3-frontend",
+  "version": "1.0.0",
+  "description": "PM3.0 PC 前端开发套件：生成器 + 场景生成器 + 工作流代理 + 项目规范模板",
+  "author": { "name": "isoftstone-AI" }
+}
