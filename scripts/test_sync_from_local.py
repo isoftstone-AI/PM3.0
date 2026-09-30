@@ -114,6 +114,18 @@ class TestCleanContent(unittest.TestCase):
             n = clean_file(p, CONTENT_EDITS["plugins/pm3-frontend/templates/CLAUDE.md"])
             self.assertGreaterEqual(n, 4)
 
+    def test_evals_json_paths_parameterized(self):
+        sample = '{"prompt": "根据 @REDACTED-PATH/work/个人积累/ai/工程管理/api/openapi.yaml 生成"}'
+        for rel in ("plugins/pm3-frontend/skills/generate-api/evals/evals.json",
+                    "plugins/pm3-frontend/skills/generate-prd-guide/evals/evals.json"):
+            with tempfile.TemporaryDirectory() as td:
+                p = Path(td) / "evals.json"
+                p.write_text(sample, encoding="utf-8")
+                clean_file(p, CONTENT_EDITS[rel])
+                out = p.read_text(encoding="utf-8")
+                self.assertNotIn("REDACTED-PATH", out, rel)
+                self.assertIn("<ai-workspace>", out, rel)
+
 
 def make_fake_source(ai_root: Path, global_root: Path):
     (ai_root / "skills" / "demo").mkdir(parents=True)

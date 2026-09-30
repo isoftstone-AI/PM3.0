@@ -63,6 +63,13 @@ CONTENT_EDITS = {
         (re.compile(r"（PC 仓库默认：`REDACTED-PATH/work/pm/pm3\.0_frontend`，页面文件由输入参数 `<pc-vue-path>` 指定）"),
          "（PC 仓库根目录由调用方工作目录或输入参数确定，页面文件由输入参数 `<pc-vue-path>` 指定）"),
     ],
+    # evals.json 示例提示词中的个人绝对路径 → 中性占位
+    "plugins/pm3-frontend/skills/generate-api/evals/evals.json": [
+        (re.compile(r"REDACTED-PATH/work/个人积累/ai"), "<ai-workspace>"),
+    ],
+    "plugins/pm3-frontend/skills/generate-prd-guide/evals/evals.json": [
+        (re.compile(r"REDACTED-PATH/work/个人积累/ai"), "<ai-workspace>"),
+    ],
 }
 
 
@@ -84,21 +91,21 @@ DEFAULT_REPO = Path(__file__).resolve().parent.parent
 
 # (源相对路径, 仓库内目标相对路径, 源根, 目录级排除名)
 COPY_PLAN = [
-    ("skills/generate-prd-guide", "plugins/pm3-frontend/skills/generate-prd-guide", "ai",
+    (".claude/skills/generate-prd-guide", "plugins/pm3-frontend/skills/generate-prd-guide", "ai",
      frozenset({"temp", "OPTIMIZATION-PLAN.md", "OPTIMIZATION-REPORT.md", "REVISION-SUMMARY.md"})),
-    ("skills/generator-dev-plan", "plugins/pm3-frontend/skills/generator-dev-plan", "ai",
+    (".claude/skills/generator-dev-plan", "plugins/pm3-frontend/skills/generator-dev-plan", "ai",
      frozenset({"tasks"})),
-    ("skills/generate-api", "plugins/pm3-frontend/skills/generate-api", "ai", frozenset()),
-    ("skills/scene-list", "plugins/pm3-frontend/skills/scene-list", "ai", frozenset()),
-    ("skills/scene-form", "plugins/pm3-frontend/skills/scene-form", "ai", frozenset()),
-    ("skills/scene-detail", "plugins/pm3-frontend/skills/scene-detail", "ai", frozenset()),
-    ("skills/scene-approval", "plugins/pm3-frontend/skills/scene-approval", "ai", frozenset()),
-    ("skills/pattern-upload", "plugins/pm3-frontend/skills/pattern-upload", "ai", frozenset()),
-    ("skills/skill-generator", "plugins/pm3-frontend/skills/skill-generator", "ai", frozenset()),
-    ("skills/create-develop-plan-skill", "plugins/pm3-frontend/skills/create-develop-plan-skill", "ai", frozenset()),
-    ("agents/workflow-agent", "plugins/pm3-frontend/skills/workflow-agent", "ai",
+    (".claude/skills/generate-api", "plugins/pm3-frontend/skills/generate-api", "ai", frozenset()),
+    (".claude/skills/scene-list", "plugins/pm3-frontend/skills/scene-list", "ai", frozenset()),
+    (".claude/skills/scene-form", "plugins/pm3-frontend/skills/scene-form", "ai", frozenset()),
+    (".claude/skills/scene-detail", "plugins/pm3-frontend/skills/scene-detail", "ai", frozenset()),
+    (".claude/skills/scene-approval", "plugins/pm3-frontend/skills/scene-approval", "ai", frozenset()),
+    (".claude/skills/pattern-upload", "plugins/pm3-frontend/skills/pattern-upload", "ai", frozenset()),
+    (".claude/skills/skill-generator", "plugins/pm3-frontend/skills/skill-generator", "ai", frozenset()),
+    (".claude/skills/create-develop-plan-skill", "plugins/pm3-frontend/skills/create-develop-plan-skill", "ai", frozenset()),
+    (".claude/agents/workflow-agent", "plugins/pm3-frontend/skills/workflow-agent", "ai",
      frozenset({"logs", "skills"})),
-    ("rules", "plugins/pm3-frontend/templates/rules", "ai", frozenset()),
+    (".claude/rules", "plugins/pm3-frontend/templates/rules", "ai", frozenset()),
     ("CLAUDE.md", "plugins/pm3-frontend/templates/CLAUDE.md", "ai", frozenset()),
     ("skills/pm-mobile-migration", "plugins/pm3-mobile/skills/pm-mobile-migration", "global", frozenset()),
     ("skills/isoftstone-debug-recovery", "plugins/pm3-common/skills/isoftstone-debug-recovery", "global", frozenset()),
