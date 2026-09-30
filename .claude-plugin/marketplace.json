@@ -1,6 +1,7 @@
 {
   "name": "PM3.0",
   "owner": { "name": "isoftstone-AI" },
+  "description": "PM3.0 系列项目的 Claude Code 资产商店：PC 前端生成器套件、移动端迁移工作流、通用 bug 修复编排",
   "plugins": [
     {
       "name": "pm3-frontend",

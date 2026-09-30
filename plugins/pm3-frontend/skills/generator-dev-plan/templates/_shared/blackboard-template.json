@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "signature": "",
+    "status": "running",
+    "createdAt": "",
+    "designDocPath": "",
+    "outputPath": "",
+    "apiDocSource": "",
+    "pageType": "",
+    "pageName": "",
+    "pagePath": "",
+    "outputDir": ""
+  },
+  "designDigest": {
+    "specialEmphasis": [],
+    "keyDifferences": [],
+    "nodePermissions": [],
+    "enums": [],
+    "interfaces": [],
+    "pagination": {},
+    "apiSpec": null
+  },
+  "modules": [
+    {
+      "code": "",
+      "name": "",
+      "templatePath": "",
+      "fieldDataSlice": {},
+      "sharedPartials": [],
+      "status": "pending",
+      "outputFile": "",
+      "error": null,
+      "startedAt": null,
+      "finishedAt": null
+    }
+  ],
+  "progress": {
+    "done": 0,
+    "total": 0,
+    "failed": 0
+  },
+  "artifacts": []
+}

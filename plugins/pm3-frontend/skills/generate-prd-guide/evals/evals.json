@@ -1,0 +1,22 @@
+{
+  "skill_name": "generate-prd-guide",
+  "evals": [
+    {
+      "id": 1,
+      "name": "工程管理-开工管理",
+      "prompt": "请使用 generate-prd-guide 生成前端开发文档：\n- PRD: @ai/工程管理/工程管理prd-ai适用版.md\n- 设计图: @<ai-workspace>/工程管理/设计图/开工管理-设计图.md\n- 模块名称: 开工管理\n- 版本: v1.2\n- 输出: @<ai-workspace>/工程管理/开工管理-前端开发指南.md",
+      "expected_output": "生成完整的前端开发引导文档，包含字典速查表、需求导航地图、审批流专题（MindWord格式）、页面详情、弹窗详情、附录",
+      "files": [
+        "<ai-workspace>/工程管理/工程管理prd-ai适用版.md",
+        "<ai-workspace>/工程管理/设计图/开工管理-设计图.md"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "简单测试-小文档",
+      "prompt": "请使用 generate-prd-guide 生成前端开发文档：\n- PRD: @/path/to/small-prd.md\n- 设计图: @/path/to/small-design.md\n- 模块名称: 测试模块\n- 版本: v1.0\n- 输出: @/path/to/output.md",
+      "expected_output": "即使文档较小，也应生成标准结构的文档",
+      "files": []
+    }
+  ]
+}

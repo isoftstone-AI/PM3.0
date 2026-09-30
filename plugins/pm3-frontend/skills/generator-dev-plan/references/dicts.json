@@ -1,0 +1,127 @@
+{
+  "_comment": "字典映射 - 字典编码 → 字典项",
+  "_usage": "字段需要字典时，通过 dictCode 查找对应字典项列表",
+
+  "approvalStatus": {
+    "dictCode": "approvalStatus",
+    "dictName": "审批状态",
+    "usage": "列表页状态列、审批页单据信息",
+    "items": {
+      "DRAFT": "草稿",
+      "PROCESSING": "审批中",
+      "REJECTED": "审批驳回",
+      "COMPLETED": "审批完成",
+      "CLOSED": "关闭",
+      "WITHDRAWN": "已撤回"
+    },
+    "tagColors": {
+      "DRAFT": "default",
+      "PROCESSING": "processing",
+      "REJECTED": "error",
+      "COMPLETED": "success",
+      "CLOSED": "warning",
+      "WITHDRAWN": "default"
+    }
+  },
+
+  "projectType": {
+    "dictCode": "projectType",
+    "dictName": "项目业态",
+    "usage": "列表页筛选、表单页基础信息",
+    "items": {
+      "1": "风电",
+      "2": "光伏",
+      "3": "储能"
+    },
+    "tagColors": {
+      "1": "blue",
+      "2": "green",
+      "3": "orange"
+    }
+  },
+
+  "firstLevelPlan": {
+    "dictCode": "firstLevelPlan",
+    "dictName": "是否纳入一级计划",
+    "usage": "表单页基础信息、审批页基础信息",
+    "items": {
+      "1": "是",
+      "0": "否"
+    }
+  },
+
+  "submissionStatus": {
+    "dictCode": "submissionStatus",
+    "dictName": "提资状态",
+    "usage": "列表页状态列",
+    "items": {
+      "0": "未提资",
+      "1": "已提资",
+      "2": "提资中",
+      "3": "已退回"
+    },
+    "tagColors": {
+      "0": "default",
+      "1": "success",
+      "2": "processing",
+      "3": "error"
+    }
+  },
+
+  "equipmentCategory": {
+    "dictCode": "equipmentCategory",
+    "dictName": "设备类别",
+    "usage": "设备明细表格",
+    "items": {
+      "WT": "风机",
+      "PV": "组件",
+      "INV": "逆变器",
+      "BOX": "箱变",
+      "TRANS": "主变",
+      "BESS": "储能系统"
+    }
+  },
+
+  "lockLevel": {
+    "dictCode": "lockLevel",
+    "dictName": "锁定级别",
+    "usage": "表单页基础信息",
+    "items": {
+      "1": "一级锁定",
+      "2": "二级锁定",
+      "3": "三级锁定"
+    }
+  },
+
+  "subCode": {
+    "dictCode": "subCode",
+    "dictName": "分公司",
+    "usage": "列表页筛选、表单页基础信息",
+    "note": "组织架构数据，通过 OrgSelect 或接口获取"
+  },
+
+  "regionCode": {
+    "dictCode": "regionCode",
+    "dictName": "区域",
+    "usage": "列表页筛选、表单页基础信息",
+    "note": "组织架构数据，与分公司联动"
+  },
+
+  "closeReason": {
+    "dictCode": "closeReason",
+    "dictName": "放弃原因",
+    "usage": "关闭操作时的原因选择",
+    "note": "业务自定义字典"
+  },
+
+  "approveResult": {
+    "dictCode": "approveResult",
+    "dictName": "审批结果",
+    "usage": "审批页操作",
+    "items": {
+      "agree": "同意",
+      "reject": "驳回",
+      "transfer": "转办"
+    }
+  }
+}

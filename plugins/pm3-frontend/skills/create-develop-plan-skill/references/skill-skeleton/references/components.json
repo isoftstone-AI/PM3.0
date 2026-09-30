@@ -1,0 +1,93 @@
+{
+  "_comment": "组件选型映射 - 从项目 CLAUDE.md/AGENTS.md 自动提取",
+  "_usage": "根据字段特征（数据类型、交互方式、数据源）选择合适的组件",
+  "_generated_by": "create-develop-plan-skill",
+  "_source": "{{claudeMdPath}}",
+  "_generated_at": "{{createdAt}}",
+  "_framework": "{{framework}}",
+
+  "_template_note": "以下为分类结构模板。实际数据由 create-develop-plan-skill 从 CLAUDE.md 提取填充。每个分类下的组件按 CLAUDE.md 中的组件表转换而来。",
+
+  "table": {
+    "_description": "表格/数据展示组件",
+    "_example": {
+      "BasicTable": {
+        "component": "BasicTable",
+        "import": "@/components/BasicTable",
+        "defaultProps": { "useSearchForm": true },
+        "note": "表格（强制使用）"
+      }
+    }
+  },
+  "select": {
+    "_description": "选择/下拉组件",
+    "_example": {
+      "DictSelect": {
+        "component": "DictSelect",
+        "import": "@/components/DictSelect",
+        "defaultProps": {},
+        "note": "字典选择"
+      }
+    }
+  },
+  "input": {
+    "_description": "输入/文本组件",
+    "_example": {
+      "Input": {
+        "component": "Input",
+        "import": "{{uiLibImport}}",
+        "defaultProps": { "allowClear": true },
+        "note": "文本输入"
+      }
+    }
+  },
+  "date": {
+    "_description": "日期/时间选择组件",
+    "_example": {
+      "DatePicker": {
+        "component": "DatePicker",
+        "import": "{{uiLibImport}}",
+        "defaultProps": {},
+        "note": "日期选择"
+      }
+    }
+  },
+  "upload": {
+    "_description": "文件上传/附件组件",
+    "_example": {
+      "Upload": {
+        "component": "Upload",
+        "import": "{{projectUploadImport}}",
+        "defaultProps": {},
+        "note": "文件上传"
+      }
+    }
+  },
+  "display": {
+    "_description": "展示/装饰组件",
+    "_example": {
+      "ModuleTitle": {
+        "component": "ModuleTitle",
+        "import": "@/components/ModuleTitle",
+        "defaultProps": {},
+        "note": "表单分组标题"
+      }
+    }
+  },
+  "layout": {
+    "_description": "布局/容器组件",
+    "_example": {}
+  },
+  "navigation": {
+    "_description": "导航/分页组件",
+    "_example": {}
+  },
+  "feedback": {
+    "_description": "反馈/提示组件",
+    "_example": {}
+  },
+  "special": {
+    "_description": "特殊/业务组件（无法归入以上分类）",
+    "_example": {}
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "_description": "CLAUDE.md / AGENTS.md 结构校验规则。定义必要章节、建议章节和提取规则。",
+  "_version": "1.0.0",
+
+  "validation": {
+    "required_sections": [
+      {
+        "id": "tech_stack",
+        "name": "技术栈定义",
+        "weight": 30,
+        "detection": {
+          "keywords": ["技术栈", "框架", "Vue", "React", "Next", "Nuxt", "TypeScript", "JavaScript", "Python", "Java", "Go", "UI", "Ant Design", "Element", "Naive", "Material", "Vite", "Webpack", "Spring", "Django", "Flask", "Gin"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*技术栈", "##.*技术栈", "Tech Stack", "技术栈：", "###.*Tech Stack"]
+        },
+        "extract": {
+          "framework": { "patterns": ["Vue 3", "Vue3", "Vue", "React", "Next.js", "Nuxt", "Spring Boot", "Django", "Flask", "Gin", "Express", "FastAPI"] },
+          "language": { "patterns": ["TypeScript", "JavaScript", "TS", "JS", "Python", "Java", "Go", "Kotlin", "Rust"] },
+          "uiLib": { "patterns": ["Ant Design Vue", "Ant Design", "Element Plus", "Element", "Naive UI", "Material UI", "Tailwind CSS", "shadcn/ui", "Radix", "Headless UI"] },
+          "buildTool": { "patterns": ["Vite", "Webpack", "Rollup", "esbuild", "Turbopack", "Maven", "Gradle", "pip", "npm", "pnpm"] },
+          "styleScheme": { "patterns": ["Tailwind", "CSS Module", "Less", "Sass", "SCSS", "CSS-in-JS", "Styled Components", "BEM"] }
+        },
+        "missing_action": "必须补充。请提供项目的技术栈信息：框架、语言、UI库、构建工具。",
+        "example": "### 1. 技术栈\n- **框架**：Vue 3\n- **语言**：TypeScript\n- **UI 库**：Ant Design Vue 4\n- **构建工具**：Vite"
+      },
+      {
+        "id": "component_library",
+        "name": "组件库清单",
+        "weight": 30,
+        "detection": {
+          "keywords": ["组件", "导入路径", "import", "用途", "BasicTable", "DictSelect", "Select", "Input"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*组件", "###.*核心组件", "核心组件", "Component", "组件（编码时优先使用）"]
+        },
+        "extract": {
+          "format": "table",
+          "columns": ["组件名/组件", "导入路径", "用途"],
+          "row_pattern": "\\|\\s*(\\S+)\\s*\\|\\s*`?([^`|]+)`?\\s*\\|\\s*(.+?)\\s*\\|"
+        },
+        "missing_action": "必须补充。请提供项目可用的组件清单（组件名 + 导入路径 + 用途）。",
+        "example": "| 组件 | 导入路径 | 用途 |\n|------|---------|------|\n| BasicTable | `@/components/BasicTable` | 表格 |"
+      },
+      {
+        "id": "directory_structure",
+        "name": "目录结构规范",
+        "weight": 30,
+        "detection": {
+          "keywords": ["目录结构", "index", "useIndex", "api/", "components/", "controller", "service", "model", "PascalCase", "目录", "src/", "pages/", "views/", "app/"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*目录结构", "目录结构规范", "Directory Structure", "Project Structure"]
+        },
+        "extract": {
+          "pagePattern": { "patterns": ["index.tsx", "index.vue", "index.jsx", "index.ts", "index.py", "index.java", "useIndex"] },
+          "apiPattern": { "patterns": ["api/", "api/index", "controller/", "service/", "routes/", "handlers/"] },
+          "componentPattern": { "patterns": ["PascalCase", "components/", "widgets/", "views/", "partials/"] },
+          "basePaths": { "patterns": ["src/", "app/", "pages/", "views/", "src/main/java/", "src/main/resources/"] }
+        },
+        "missing_action": "必须补充。请提供项目的文件组织规范：页面文件结构、API 文件位置、组件目录规范。",
+        "example": "### 目录结构规范\n- 页面放 src/views/ 目录（框架无关）\n- API 放 api/ 目录\n- 组件用 PascalCase 目录"
+      }
+    ],
+
+    "optional_sections": [
+      {
+        "id": "field_reference",
+        "name": "常用字段表",
+        "weight": 10,
+        "detection": {
+          "keywords": ["字段名", "中文名", "组件", "必填", "字段", "常用字段"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*常用字段", "###.*字段", "常用字段", "字段参考"]
+        },
+        "extract": {
+          "format": "table",
+          "columns": ["字段名", "中文名/label", "组件", "必填"],
+          "row_pattern": "\\|\\s*(\\S+)\\s*\\|\\s*(.+?)\\s*\\|\\s*(\\S+)\\s*\\|\\s*(.+?)\\s*\\|"
+        },
+        "missing_action": "可选。提供常用字段表可提升生成质量。"
+      },
+      {
+        "id": "implicit_rules",
+        "name": "隐含规则/禁止项",
+        "weight": 10,
+        "detection": {
+          "keywords": ["隐含规则", "正确做法", "错误做法", "禁止", "❌", "✅", "绝对禁止", "隐含"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*隐含规则", "###.*禁止", "隐含规则", "绝对禁止"]
+        },
+        "extract": {
+          "format": "table_or_list",
+          "columns": ["规则", "正确做法", "错误做法"]
+        },
+        "missing_action": "可选。提供隐含规则可增强自检清单。"
+      },
+      {
+        "id": "scene_mapping",
+        "name": "场景→Skill映射",
+        "weight": 10,
+        "detection": {
+          "keywords": ["场景选择", "Skill", "列表页", "表单页", "详情页", "审批页", "弹窗", "我要开发", "代码生成"],
+          "min_keyword_match": 2,
+          "section_patterns": ["###.*场景选择", "场景选择", "我要开发"]
+        },
+        "extract": {
+          "format": "table",
+          "columns": ["场景", "使用方式/Skill"]
+        },
+        "missing_action": "可选。提供场景映射可自动配置页面类型。"
+      }
+    ]
+  },
+
+  "scoring": {
+    "max_score": 120,
+    "thresholds": {
+      "fully_usable": 90,
+      "partially_usable": 60
+    },
+    "labels": {
+      "fully_usable": "✅ 完全可用",
+      "partially_usable": "⚠️ 部分缺失，需补充必填项",
+      "insufficient": "❌ 严重缺失，建议先完善 CLAUDE.md"
+    }
+  },
+
+  "component_classification": {
+    "_description": "按组件名关键词自动分类（通用规则，适配任意前端框架）",
+    "_note": "分类基于通用 UI 概念，不绑定特定框架的组件名。匹配时按关键词子串匹配。",
+    "rules": [
+      { "category": "table", "keywords": ["Table", "DataGrid", "DataTable", "Grid", "表格", "数据表"] },
+      { "category": "select", "keywords": ["Select", "Dropdown", "Combobox", "Autocomplete", "Picker", "TreeSelect", "Cascader", "选择"] },
+      { "category": "input", "keywords": ["Input", "Text", "Number", "TextArea", "Textarea", "Editor", "RichText", "I18n", "输入"] },
+      { "category": "date", "keywords": ["Date", "Time", "Calendar", "Range", "Period", "日期", "时间"] },
+      { "category": "upload", "keywords": ["Upload", "File", "Attachment", "Dropzone", "上传", "附件"] },
+      { "category": "display", "keywords": ["Title", "Heading", "Loading", "Spinner", "Export", "Badge", "Tag", "Avatar", "Tooltip", "Popover"] },
+      { "category": "layout", "keywords": ["Layout", "Grid", "Flex", "Container", "Card", "Panel", "Collapse", "Tabs", "Modal", "Dialog", "Drawer"] },
+      { "category": "navigation", "keywords": ["Menu", "Breadcrumb", "Pagination", "Steps", "Wizard", "导航", "分页"] },
+      { "category": "feedback", "keywords": ["Alert", "Message", "Notification", "Toast", "Confirm", "Progress", "Result"] },
+      { "category": "special", "keywords": ["Chart", "Map", "Timeline", "Tree", "OrgChart", "Drag", "Resize", "Virtual"] }
+    ],
+    "default_category": "special",
+    "framework_overrides": {
+      "_description": "框架特定组件名到通用分类的映射。当 CLAUDE.md 中出现这些组件名时，优先使用此映射。",
+      "_note": "生成时根据 CLAUDE.md 提取的 framework 值选择对应的 override。如果框架不在列表中，使用通用规则。",
+      "vue": [
+        { "name": "BasicTable", "category": "table" },
+        { "name": "DictSelect", "category": "select" },
+        { "name": "OrgSelect", "category": "select" },
+        { "name": "LovSelect", "category": "select" },
+        { "name": "UserSelect", "category": "select" },
+        { "name": "SearchSelect", "category": "select" },
+        { "name": "BooleanSelect", "category": "select" },
+        { "name": "CountrySelect", "category": "select" },
+        { "name": "PaginationSelect", "category": "navigation" },
+        { "name": "MaterialCategoryTreeSelect", "category": "select" },
+        { "name": "Period", "category": "date" },
+        { "name": "ProjectSelectModal", "category": "layout" },
+        { "name": "RangeNumberInput", "category": "input" },
+        { "name": "DoubleInputNumber", "category": "input" },
+        { "name": "StorageScaleInput", "category": "input" },
+        { "name": "ModuleTitle", "category": "display" },
+        { "name": "Upload", "category": "upload" },
+        { "name": "FileCard", "category": "upload" },
+        { "name": "AttachmentFileList", "category": "upload" },
+        { "name": "ProgressUpload", "category": "upload" },
+        { "name": "UploadTable", "category": "upload" },
+        { "name": "I18nInput", "category": "input" },
+        { "name": "Export", "category": "display" },
+        { "name": "Loading", "category": "feedback" }
+      ],
+      "react": [
+        { "name": "ProTable", "category": "table" },
+        { "name": "Table", "category": "table" },
+        { "name": "Select", "category": "select" },
+        { "name": "TreeSelect", "category": "select" },
+        { "name": "DatePicker", "category": "date" },
+        { "name": "RangePicker", "category": "date" },
+        { "name": "Upload", "category": "upload" },
+        { "name": "Modal", "category": "layout" },
+        { "name": "Form", "category": "input" }
+      ]
+    }
+  }
+}

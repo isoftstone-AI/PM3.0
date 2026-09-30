@@ -1,0 +1,23 @@
+{
+  "skill_name": "generate-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "根据 Apifox MCP 生成指标管理(pmDevQuotaProjectMain)模块的全部API代码，放到 quota-manage/api 下",
+      "expected_output": "生成 types.ts 和 index.ts，包含列表查询、详情查询、新增接口的类型定义和请求函数",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "根据 @<ai-workspace>/工程管理/api/工程管理v3openapi.yaml 这个文件，只生成列表查询和详情查询两个接口的API代码，放到 eng-manage/construct-review/api 下",
+      "expected_output": "只生成指定接口的类型和函数，不生成新增/删除等接口",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我生成设备提资模块的API代码，接口来源是 Apifox",
+      "expected_output": "识别模块名推断路径为 equipment-extract/api，从 Apifox MCP 获取接口定义后生成代码",
+      "files": []
+    }
+  ]
+}

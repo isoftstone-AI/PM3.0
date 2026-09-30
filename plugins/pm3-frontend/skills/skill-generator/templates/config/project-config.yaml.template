@@ -1,0 +1,61 @@
+# generate-{project.name}-guide 项目配置
+# 由 skill-generator 自动生成，可手动修改后用于重新生成
+
+version: "1.0"
+
+# 项目基本信息
+project:
+  name: "{project.name}"
+  domain: "{project.domain}"
+  description: "{project.description}"
+
+# 目录结构
+directory:
+  output: "{directory.output}"
+  pages: "{directory.pages}"
+  components: "{directory.components}"
+  api: "{directory.api}"
+
+# 命名规范
+naming:
+  fieldCase: "{naming.fieldCase}"
+  fileCase: "{naming.fileCase}"
+  apiPrefix: "{naming.apiPrefix}"
+
+# 字典/枚举管理
+dictionaries:
+  source: "{dictionaries.source}"
+  naming: "{dictionaries.naming}"
+  predefined: {dictionaries.predefined}
+
+# 公共字段定义
+commonFields: {commonFields}
+
+# 设计图格式
+designFormat:
+  primary: "{designFormat.primary}"
+  supported: {designFormat.supported}
+
+# API 规范
+api:
+  format: "{api.format}"
+  paramStyle: "{api.paramStyle}"
+
+# 字段类型约束
+fieldConstraints:
+  dateFormat: "{fieldConstraints.dateFormat}"
+  numberPrecision: {fieldConstraints.numberPrecision}
+  textMaxLength: {fieldConstraints.textMaxLength}
+
+# 输出配置
+output:
+  language: "{output.language}"
+  includeGapAnalysis: {output.includeGapAnalysis}
+  includePageRelations: {output.includePageRelations}
+  includePrdFieldIndex: {output.includePrdFieldIndex}
+
+# 生成器开关
+generators:
+  approval: {generators.approval}
+  dictNav: {generators.dictNav}
+  modal: {generators.modal}

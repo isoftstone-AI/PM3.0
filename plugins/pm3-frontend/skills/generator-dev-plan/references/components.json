@@ -1,0 +1,240 @@
+{
+  "_comment": "组件选型映射 - 字段类型 → 推荐组件",
+  "_usage": "根据字段特征（数据类型、交互方式、数据源）选择合适的组件",
+
+  "input": {
+    "text": {
+      "component": "Input",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "allowClear": true,
+        "maxLength": 128
+      }
+    },
+    "textarea": {
+      "component": "Textarea",
+      "import": "ant-design-vue",
+      "importAs": "Input.TextArea",
+      "defaultProps": {
+        "rows": 4,
+        "showCount": true,
+        "maxLength": 500
+      }
+    },
+    "number": {
+      "component": "InputNumber",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "precision": 2,
+        "min": 0,
+        "style": "width: 100%"
+      }
+    },
+    "i18n": {
+      "component": "I18nInput",
+      "import": "@/components/I18nInput",
+      "defaultProps": {}
+    }
+  },
+
+  "select": {
+    "dict": {
+      "component": "DictSelect",
+      "import": "@/components/DictSelect",
+      "defaultProps": {},
+      "requiredProps": ["dictCode"]
+    },
+    "search": {
+      "component": "SearchSelect",
+      "import": "@/components/SearchSelect",
+      "defaultProps": {},
+      "requiredProps": ["api"]
+    },
+    "lov": {
+      "component": "LovSelect",
+      "import": "@/components/LovSelect",
+      "defaultProps": {},
+      "requiredProps": ["lovCode"]
+    },
+    "user": {
+      "component": "LovSelect",
+      "import": "@/components/LovSelect",
+      "defaultProps": {
+        "lovCode": "USER_SELECT"
+      },
+      "note": "用户选择优先使用 LovSelect"
+    },
+    "org": {
+      "component": "OrgSelect",
+      "import": "@/components/OrgSelect",
+      "defaultProps": {}
+    },
+    "country": {
+      "component": "CountrySelect",
+      "import": "@/components/CountrySelect",
+      "defaultProps": {}
+    },
+    "boolean": {
+      "component": "BooleanSelect",
+      "import": "@/components/BooleanSelect",
+      "defaultProps": {}
+    },
+    "pagination": {
+      "component": "PaginationSelect",
+      "import": "@/components/PaginationSelect",
+      "defaultProps": {},
+      "note": "大数据量分页选择器"
+    },
+    "materialCategory": {
+      "component": "MaterialCategoryTreeSelect",
+      "import": "@/components/MaterialCategoryTreeSelect",
+      "defaultProps": {}
+    }
+  },
+
+  "date": {
+    "date": {
+      "component": "DatePicker",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "valueFormat": "YYYY-MM-DD",
+        "style": "width: 100%"
+      }
+    },
+    "dateTime": {
+      "component": "DatePicker",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "showTime": true,
+        "valueFormat": "YYYY-MM-DD HH:mm:ss",
+        "style": "width: 100%"
+      }
+    },
+    "dateRange": {
+      "component": "RangePicker",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "valueFormat": "YYYY-MM-DD",
+        "style": "width: 100%"
+      }
+    },
+    "period": {
+      "component": "Period",
+      "import": "@/components/Period",
+      "defaultProps": {},
+      "note": "年度+季度/月度期间选择"
+    }
+  },
+
+  "area": {
+    "cascader": {
+      "component": "Cascader",
+      "import": "ant-design-vue",
+      "defaultProps": {
+        "placeholder": "请选择省市区",
+        "fieldNames": { "label": "name", "value": "code", "children": "children" }
+      },
+      "output": ["provinceCode", "cityCode", "countyCode"]
+    }
+  },
+
+  "upload": {
+    "simple": {
+      "component": "Upload",
+      "import": "@/components/Upload/Upload.vue",
+      "defaultProps": {},
+      "requiredProps": ["attachmentType"],
+      "note": "简单文件上传"
+    },
+    "attachmentList": {
+      "component": "AttachmentFileList",
+      "import": "@/components/AttachmentFileList",
+      "defaultProps": {},
+      "note": "多类型附件管理（复杂分类含表格）"
+    },
+    "progressUpload": {
+      "component": "ProgressUpload",
+      "import": "@/components/ProgressUpload",
+      "defaultProps": {},
+      "note": "增强版文件上传（带进度）"
+    },
+    "uploadTable": {
+      "component": "UploadTable",
+      "import": "@/components/UploadTable",
+      "defaultProps": {},
+      "note": "表格形式附件管理（最后再考虑）"
+    }
+  },
+
+  "special": {
+    "projectSelect": {
+      "component": "ProjectSelectModal",
+      "import": "@/components/ProjectSelectModal",
+      "defaultProps": {},
+      "note": "项目选择弹窗"
+    },
+    "rangeNumber": {
+      "component": "RangeNumberInput",
+      "import": "@/components/RangeNumberInput",
+      "defaultProps": {},
+      "note": "数值范围输入（最小-最大）"
+    },
+    "doubleInput": {
+      "component": "DoubleInputNumber",
+      "import": "@/components/common/DoubleInputNumber",
+      "defaultProps": {},
+      "note": "双数字输入框"
+    },
+    "storageScale": {
+      "component": "StorageScaleInput",
+      "import": "@/components/common/StorageScaleInput",
+      "defaultProps": {},
+      "note": "储能规模输入(MW+MWh)"
+    }
+  },
+
+  "display": {
+    "moduleTitle": {
+      "component": "ModuleTitle",
+      "import": "@/components/ModuleTitle",
+      "defaultProps": {},
+      "note": "表单分组标题（带左侧竖条装饰）"
+    },
+    "fileCard": {
+      "component": "FileCard",
+      "import": "@/components/FileCard",
+      "defaultProps": {},
+      "note": "文件卡片展示"
+    }
+  },
+
+  "api": {
+    "_comment": "Select 组件常见数据源映射，用于检测数据源完整性",
+    "selectDataSources": {
+      "dict": {
+        "api": "/api/myth-permission/v3/dict/data/list",
+        "note": "字典数据源，需传入 dictCode"
+      },
+      "org": {
+        "api": "/api/myth-permission/v3/secOrg/findOrgIncludeSub",
+        "note": "组织架构数据源，分公司(type=1) / 区域(type=2)"
+      },
+      "user": {
+        "api": "LovSelect / OSLovSelect 内置",
+        "note": "用户搜索，通过 LovSelect/OSLovSelect 组件的内置 API"
+      },
+      "project": {
+        "api": "ProjectSelectModal 内置",
+        "note": "项目搜索，通过 ProjectSelectModal 组件的内置搜索"
+      },
+      "country": {
+        "api": "CountrySelect 内置",
+        "note": "国家选择，通过 CountrySelect 组件的内置数据"
+      },
+      "material": {
+        "api": "MaterialCategoryTreeSelect 内置",
+        "note": "物料分类树选择，通过内置树数据"
+      }
+    }
+  }
+}

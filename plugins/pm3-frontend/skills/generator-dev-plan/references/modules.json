@@ -1,0 +1,129 @@
+{
+  "_comment": "参考模块映射 - 模块类型 → 参考模块路径",
+  "_usage": "生成自检部分时，查询参考模块中相同字段的实现方式进行对比",
+
+  "list": {
+    "search": {
+      "refModule": "special-review",
+      "path": "src/views/eng-manage/special-review",
+      "fieldFile": "modules/search-fields.ts",
+      "note": "筛选查询区参考：special-review 的搜索表单"
+    },
+    "table": {
+      "refModule": "construction-design-review",
+      "path": "src/views/eng-manage/construction-design-review",
+      "fieldFile": "modules/table-columns.ts",
+      "note": "主内容表格区参考：construction-design-review 的表格列"
+    },
+    "actions": {
+      "refModule": "construction-design-review",
+      "path": "src/views/eng-manage/construction-design-review",
+      "fieldFile": "modules/action-buttons.ts",
+      "note": "操作列按钮参考：construction-design-review 的操作按钮"
+    }
+  },
+
+  "form": {
+    "basicInfo": {
+      "refModule": "start-apply",
+      "path": "src/views/eng-manage/start-apply",
+      "fieldFile": "components/StartApplyForm/useForm.ts",
+      "note": "基础信息表单参考：start-apply 的基础信息字段",
+      "commonFields": [
+        "projectName", "format", "capacityTotal", "capacityWindPower",
+        "capacityPv", "capacityPvDc", "energyScale", "storageCapacity",
+        "subCode", "regionCode", "developerCode", "obtainDate",
+        "expireDate", "lockLevel", "address", "coverArea"
+      ]
+    },
+    "equipmentList": {
+      "refModule": "start-apply",
+      "path": "src/views/eng-manage/start-apply",
+      "fieldFile": "components/EquipmentList/index.tsx",
+      "note": "设备明细表格参考：start-apply 的可编辑设备列表",
+      "features": [
+        "可编辑单元格",
+        "行增删",
+        "合计行",
+        "批量导入"
+      ]
+    }
+  },
+
+  "approval": {
+    "unified": {
+      "refModule": "start-apply",
+      "path": "src/views/office/todo/components/apply-modal/startApplyApproval.tsx",
+      "fieldFile": "approval-form/StartApplyApprovalForm.tsx",
+      "note": "审批页统一参数模板参考：startApplyApproval 是最完整的参考实现",
+      "features": [
+        "两层分离（审批模板页面 + ApprovalForm）",
+        "provide/inject 权限下发",
+        "isRejected 驳回重发",
+        "completeTodoApi 标准审批提交",
+        "displayMode=embedded 组件复用"
+      ]
+    }
+  },
+
+  "detail": {
+    "docInfo": {
+      "refModule": "special-review",
+      "path": "src/views/office/todo/components/apply-modal/special-review.tsx",
+      "fieldFile": "components/DocumentInfoSection/index.tsx",
+      "note": "详情页单据信息参考：复用审批页 DocumentInfoSection 组件"
+    },
+    "basicInfo": {
+      "refModule": "construction-design-review",
+      "path": "src/views/eng-manage/construction-design-review",
+      "fieldFile": "components/BasicInfoSection/index.tsx",
+      "note": "详情页基础信息参考：复用 BasicInfoSection editable=false"
+    },
+    "equipmentReadonly": {
+      "refModule": "construction-design-review",
+      "path": "src/views/eng-manage/construction-design-review",
+      "fieldFile": "components/EquipmentSection/index.tsx",
+      "note": "详情页设备明细只读表格参考：全量只读 + 附件预览/下载"
+    },
+    "approvalRecord": {
+      "refModule": "special-review",
+      "path": "src/views/office/todo/components/apply-modal/special-review.tsx",
+      "fieldFile": "components/ApprovalRecordSection/index.tsx",
+      "note": "审批记录表格参考：序号/节点/审批人/动作/时间/意见/附件"
+    }
+  },
+
+  "modal": {
+    "selectProject": {
+      "refModule": "start-apply",
+      "path": "src/views/eng-manage/start-apply",
+      "fieldFile": "components/SelectProjectModal/index.tsx",
+      "note": "选择项目弹窗参考：搜索 + 表格 + 单选 + 返回字段映射",
+      "commonFeatures": [
+        "搜索表单",
+        "BasicTable 单选",
+        "返回 projectId/projectName/sapProjectCode 等"
+      ]
+    },
+    "selectMaterial": {
+      "refModule": "start-apply",
+      "path": "src/views/eng-manage/start-apply",
+      "fieldFile": "components/SelectMaterialModal/index.tsx",
+      "note": "选择规格型号弹窗参考：MDM 数据源 + 搜索 + 表格 + 单选",
+      "commonFeatures": [
+        "外部数据源搜索",
+        "返回 materialCode/specificationModel/equipmentName"
+      ]
+    }
+  },
+
+  "graphifyQueries": {
+    "_comment": "推荐的 /graphify query 查询语句",
+    "listSearch": "查找 special-review 的搜索表单字段定义",
+    "listTable": "查找 construction-design-review 的表格列配置",
+    "formBasicInfo": "查找 start-apply 的基础信息表单字段定义",
+    "approvalDocInfo": "查找 special-review 审批页的单据信息字段",
+    "approvalEquipment": "查找 start-apply 审批页的设备明细 NODE_EDIT_CONFIG",
+    "approvalOpinion": "查找 special-review 审批页的审批意见字段"
+  }
+}

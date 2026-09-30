@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "prompt": "/design-plan",
+    "expected": "触发设计方案场景，检测 skill 是否存在，引导用户提供 PRD 路径等参数"
+  },
+  {
+    "id": 2,
+    "prompt": "帮我创建一个开发方案",
+    "expected": "自然语言触发开发方案场景，检测 generator-dev-plan skill，引导参数"
+  },
+  {
+    "id": 3,
+    "prompt": "我需要根据 Apifox 文档生成 API 代码",
+    "expected": "触发 API 生成场景，引导用户选择 source 类型和输出目录"
+  },
+  {
+    "id": 4,
+    "prompt": "帮我用设计方案 skill 生成文档",
+    "expected": "模糊触发，应路由到设计方案场景"
+  },
+  {
+    "id": 5,
+    "prompt": "我有一份 PRD 文档和设计图，帮我生成开发方案",
+    "expected": "同时涉及 PRD 和设计图，应判断是开发方案而非设计方案，引导参数"
+  }
+]

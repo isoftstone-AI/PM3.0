@@ -1,0 +1,213 @@
+# Workflow Agent 配置文件
+# 版本: 1.0
+# 说明: 定义 agent 的扫描目录、触发词、场景路由和参数配置
+
+version: "1.0"
+
+# 扫描目录配置
+# Agent 会扫描这些目录下的 skills/ 子目录来检测已存在的 skill
+scan:
+  directories:
+    - .claude
+    - .opencode
+    - .agent
+    - .qoder
+  skillSubdir: skills  # 每个 scan 目录下的 skills 子目录
+
+# 触发词配置（分开触发模式）
+triggers:
+  # 设计方案场景
+  design:
+    command: "/design-plan"
+    keywords:
+      - "设计方案"
+      - "设计文档"
+      - "设计指南"
+      - "PRD生成"
+      - "生成设计"
+      - "create design"
+      - "design plan"
+      - "design guide"
+    description: "创建设计方案文档"
+
+  # 开发方案场景
+  develop:
+    command: "/dev-plan"
+    keywords:
+      - "开发方案"
+      - "开发文档"
+      - "开发指南"
+      - "字段级开发"
+      - "生成开发方案"
+      - "create dev plan"
+      - "develop plan"
+    description: "创建开发方案文档"
+
+  # API 文档场景
+  api:
+    command: "/api-gen"
+    keywords:
+      - "生成API"
+      - "生成接口"
+      - "接口代码"
+      - "API文档"
+      - "接口文档"
+      - "generate api"
+      - "api code"
+    description: "生成前端 API 代码"
+
+# 场景路由配置
+routes:
+  design:
+    # 需要检测的 skill 名称模式
+    skillPattern: "generate-*guide"
+    # 用于创建该 skill 的 meta-skill
+    metaSkill: "skill-generator"
+    # 创建后调用的 skill（动态名称：generate-{project}-guide）
+    # 如果未创建而直接使用现有模板源 generate-prd-guide，则调用 /generate-prd-guide
+    targetSkill: "generate-{project}-guide"
+    # 创建后需要引导用户提供的参数
+    requiredParams:
+      - name: prdPath
+        label: "PRD 文档路径"
+        type: file
+        required: true
+        hint: "PRD 文档的文件路径，如 @prd.md"
+      - name: designPath
+        label: "设计图文档路径"
+        type: file
+        required: true
+        hint: "设计图文档路径，支持 yaml/markdown/html 格式"
+      - name: moduleName
+        label: "模块名称"
+        type: string
+        required: true
+        hint: "模块名称，如 '开工管理'"
+      - name: version
+        label: "版本号"
+        type: string
+        required: false
+        default: "v1.0"
+      - name: outputDir
+        label: "输出目录"
+        type: string
+        required: true
+        hint: "输出文档的目录路径"
+      - name: apiDocPath
+        label: "API 文档路径"
+        type: file
+        required: false
+        hint: "可选的 API 文档路径"
+
+  develop:
+    skillPattern: "generator-dev-plan"
+    metaSkill: "create-develop-plan-skill"
+    targetSkill: "generator-dev-plan"
+    requiredParams:
+      - name: designDocPath
+        label: "设计方案文档路径"
+        type: file
+        required: true
+        hint: "设计方案文档的文件路径"
+      - name: outputPath
+        label: "输出路径"
+        type: string
+        required: true
+        hint: "开发方案文档的输出路径"
+      - name: pageType
+        label: "页面类型"
+        type: enum
+        required: false
+        default: "list"
+        options:
+          - value: list
+            label: "列表页"
+          - value: form
+            label: "表单页"
+          - value: detail
+            label: "详情页"
+          - value: approval
+            label: "审批页"
+          - value: modal
+            label: "选择弹窗"
+      - name: pageName
+        label: "页面名称"
+        type: string
+        required: false
+      - name: pagePath
+        label: "页面路径"
+        type: string
+        required: false
+      - name: moduleCode
+        label: "模块编码"
+        type: string
+        required: false
+      - name: moduleName
+        label: "模块名称"
+        type: string
+        required: false
+      - name: fieldData
+        label: "字段数据"
+        type: json
+        required: false
+        hint: "JSON 格式的字段数据"
+      - name: refModule
+        label: "参考模块"
+        type: string
+        required: false
+
+  api:
+    skillPattern: "generate-api"
+    metaSkill: null  # API skill 不需要创建，直接使用
+    targetSkill: "generate-api"
+    requiredParams:
+      - name: source
+        label: "接口文档来源"
+        type: enum
+        required: true
+        options:
+          - value: apifox
+            label: "Apifox MCP"
+          - value: md
+            label: "Markdown 文件"
+        hint: "接口文档来源，apifox 或 md:文件路径"
+      - name: scope
+        label: "生成范围"
+        type: string
+        required: false
+        default: "all"
+        hint: "all 或接口名称列表"
+      - name: target
+        label: "输出目录"
+        type: string
+        required: true
+        hint: "API 代码输出目录"
+
+# 日志配置
+logging:
+  enabled: true
+  level: info  # debug | info | warn | error
+  format: json  # json | text
+  outputDir: logs
+  maxFiles: 100
+  maxFileSize: "10MB"
+
+# 错误处理配置
+errorHandling:
+  # skill 不存在时的处理
+  skillNotFound:
+    action: confirm  # confirm | auto | skip
+    message: "检测到 {skillName} skill 不存在，是否创建？"
+  # skill 创建失败时的处理
+  skillCreateFailed:
+    action: retry  # retry | abort | fallback
+    maxRetries: 2
+    message: "Skill 创建失败：{error}。是否重试？"
+  # 参数缺失时的处理
+  paramMissing:
+    action: prompt  # prompt | abort | default
+    message: "缺少必要参数：{paramName}。请提供该参数。"
+  # 执行失败时的处理
+  executionFailed:
+    action: report  # report | retry | abort
+    message: "执行失败：{error}"

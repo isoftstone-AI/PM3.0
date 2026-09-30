@@ -1,0 +1,212 @@
+---
+name: generate-{{project.name}}-guide
+description: |
+  根据 PRD + 设计图自动生成{{project.domain}}设计方案文档。
+  设计图驱动、模块级生成、多文件输出。
+  触发词：生成设计方案、{{project.domain}}开发文档、PRD 转开发文档、生成设计指南
+  参数：prdPath designPath moduleName version outputDir apiDocPath(可选)
+  示例：/generate-{{project.name}}-guide prdPath=@prd.md designPath=@design.yaml moduleName={{exampleModule}} version=v1.0 outputDir=@output
+
+  v2 特点：设计图驱动、模块级生成、多文件输出、缝隙检测、API 完整定义
+
+arguments: prdPath designPath moduleName version outputDir apiDocPath
+argument-hint: <prdPath> <designPath> <moduleName> <version> <outputDir> [apiDocPath]
+compatibility: 需要 PRD 文档 (.md) + 设计图文档 ({{designFormat.primary}}/{{designFormat.otherFormats}})
+---
+
+# generate-{{project.name}}-guide
+
+根据 PRD 文档和设计图文档，自动生成{{project.domain}}设计方案文档。**设计图驱动**，目标是让开发者拿到文档后**不需要回头看 PRD**，所有细节都在文档里。
+
+## 项目配置
+
+| 配置项 | 值 |
+|-------|---|
+| 项目名称 | {{project.name}} |
+| 业务领域 | {{project.domain}} |
+| 输出目录 | {{directory.output}} |
+| 字段命名 | {{naming.fieldCase}} |
+| 字典来源 | {{dictionaries.source}} |
+| 设计图格式 | {{designFormat.primary}} |
+
+{{#if dictionaries.predefined}}
+
+## 预定义字典
+
+| 字典编码 | 字典名称 | 字典项 |
+|----------|----------|--------|
+{{#each dictionaries.predefined}}
+| {{name}} | {{label}} | {{#each values}}{{value}}={{label}} {{/each}} |
+{{/each}}
+{{/if}}
+
+## 公共字段
+
+以下字段为系统公共字段，所有模块自动包含：
+
+| 字段名 | 中文名 | 类型 | 说明 |
+|--------|--------|------|------|
+{{#each commonFields}}
+| {{name}} | {{label}} | {{type}} | {{#if readonly}}只读{{/if}}{{#if format}}，格式：{{format}}{{/if}}{{#if hidden}}，隐藏{{/if}} |
+{{/each}}
+
+## 输出文档特点
+
+### 1. 主索引文件轻薄但完整
+
+- 页面关系图（mermaid）展示页面跳转关系
+- 快速导航索引所有页面/弹窗
+- API 接口概览（含完整参数和类型定义）
+- 字典/审批流/缝隙清单摘要
+
+### 2. 设计图完整嵌入
+
+每个模块章节嵌入完整的 YAML 内容，实现「文档即设计图」。
+
+### 3. PRD 字段索引
+
+独立文件索引所有 PRD 字段位置（章节号 + 锚点）。
+
+### 4. 子文件独立
+
+每个页面/弹窗独立成文，开发者只需看自己负责的部分。
+
+### 5. 缝隙清单独立
+
+所有未明确的信息集中管理，方便与产品确认。
+
+---
+
+## 参数
+
+| 参数 | 必填 | 说明 |
+|-------|------|------|
+| `prdPath` | ✅ | PRD 文档路径 |
+| `designPath` | ✅ | 设计图文档路径（{{designFormat.primary}} 格式） |
+| `moduleName` | ✅ | 模块名称 |
+| `version` | ✅ | 版本号 |
+| `outputDir` | ✅ | 输出目录 |
+| `apiDocPath` | ❌ | API 设计文档路径 |
+
+参数缺失时交互式询问。
+
+---
+
+## 工作流程
+
+### 阶段 0：Scanner — 设计图扫描
+
+> 参考 `references/scanner-rules.md` 获取完整解析规则。
+
+**职责**：从设计图出发，建立**模块索引**。
+
+**输入**：
+- `designPath`: 设计图文档路径
+- `moduleName`: 模块名称
+
+**输出**：`temp/scanner-index.json`
+
+**处理逻辑**：
+1. 读取设计图文档，识别格式（{{designFormat.primary}}/Markdown/ASCII）
+2. 提取页面清单
+3. 对每个页面，提取模块列表（筛选区、列表区、表单区等）
+4. 对每个模块，提取字段和按钮
+5. 对每个页面，提取关联弹窗
+6. 模块归一化（将模块名映射到标准类型）
+7. 生成 prdKeyword（为每个字段/按钮生成 PRD 搜索关键词）
+
+---
+
+### 阶段 0.5：Validator — 设计图与 PRD 交叉验证
+
+> 参考 `agents/validator.md` 获取完整验证规则。
+
+**职责**：主动比对设计图和 PRD，检测页面、模块、字段的缺失和歧义。
+
+**验证规则优先级**：
+
+| 优先级 | 规则 | 失败处理 |
+|--------|------|---------|
+| P0 | 页面完整性、模块完整性、字段完整性、按钮完整性 | **终止流程** |
+| P1 | 一致性、命名一致性、字典完整性、审批流完整性、弹窗完整性 | 记录问题 |
+| P2 | 字段描述完整性、按钮描述完整性、模块标题规范性 | 提示 |
+
+---
+
+### 阶段 1：Indexer — 三源交叉索引
+
+> 参考 `references/indexer-rules.md` 获取完整检索规则。
+
+**职责**：将 Scanner 输出的模块索引与 PRD、API 文档进行交叉匹配。
+
+**PRD 检索（四轮搜索）**：
+
+| 轮次 | 搜索策略 | 搜索范围 |
+|------|---------|---------|
+| 第 1 轮 | 字段中文名精确匹配 | PRD 全文 |
+| 第 2 轮 | 模糊匹配（去掉后缀） | PRD 全文 |
+| 第 3 轮 | prdKeyword + 页面上下文 | 页面对应 PRD 章节 |
+| 第 4 轮 | 通用规则检索 | 通用规则章节 |
+
+**输出**：`temp/indexer-enhanced.json`
+
+---
+
+### 阶段 2：Generator — 模块级生成
+
+各 Generator 遵循 `references/output-templates.md` 中的模板格式。
+
+| Generator | 职责 | 状态 |
+|------------|------|------|
+| Generator-Module | 页面详情生成 | 始终启用 |
+{{#if generators.dictNav}}
+| Generator-Dict-Nav | 字典速查表 + 需求导航 | 启用 |
+{{/if}}
+{{#if generators.approval}}
+| Generator-Approval | 审批流专题 | 启用 |
+{{/if}}
+{{#if generators.modal}}
+| Generator-Modal | 弹窗详情生成 | 启用 |
+{{/if}}
+
+---
+
+### 阶段 2.5：生成物确认
+
+展示生成摘要，等待用户确认后再进入组装阶段。
+
+---
+
+### 阶段 3：Assembler — 组装 + 缝隙检测
+
+> 参考 `agents/assembler.md` 获取完整组装规则。
+
+**输出文件**：
+
+```
+{outputDir}/
+├── 0-validation-report.md      # 校验报告
+├── index.md                    # 主索引（含 Mermaid 功能地图）
+├── prd-field-index.md          # PRD 字段索引
+{{#if generators.dictNav}}
+├── 1-dict-nav.md               # 字典速查表 + 需求导航
+{{/if}}
+{{#if generators.approval}}
+├── 2-approval-flow.md          # 审批流专题
+{{/if}}
+├── page-*.md                   # 页面详情（每页一个）
+{{#if generators.modal}}
+├── modal-*.md                  # 弹窗详情（每弹窗一个）
+{{/if}}
+└── 9-gap-analysis.md           # 信息缝隙清单
+```
+
+---
+
+## 注意事项
+
+- 所有外部链接使用相对路径
+- 按钮名称必须与 PRD 原文一致
+- API 类型定义必须与后端确认一致
+- 审批流使用 Mermaid 格式
+- 页面跳转使用 Mermaid 格式

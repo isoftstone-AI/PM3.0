@@ -1,0 +1,6 @@
+{
+  "_comment": "字典编码映射 - 从项目 CLAUDE.md/AGENTS.md 提取或用户手动补充",
+  "_generated_by": "create-develop-plan-skill",
+  "_source": "{{claudeMdPath}} + 用户补充",
+  "_generated_at": "{{createdAt}}"
+}
