@@ -57,7 +57,7 @@ PM3.0/  (github.com/isoftstone-AI/PM3.0)
 │       ├── .claude-plugin/plugin.json
 │       └── skills/isoftstone-debug-recovery/
 ├── scripts/
-│   └── sync-from-local.py            # 同步 + 清洗 + 泄漏扫描
+│   └── sync_from_local.py            # 同步 + 清洗 + 泄漏扫描
 └── README.md                         # 商店说明 + 入项指引 + 依赖声明
 ```
 
@@ -134,7 +134,7 @@ mkdir -p .claude/rules && cp -r ~/.claude/plugins/cache/PM3.0/plugins/pm3-fronte
 单一事实源仍是个人 `ai/.claude`：
 
 ```
-个人目录开发 → python3 scripts/sync-from-local.py（增量重建+清洗+扫描）
+个人目录开发 → python3 scripts/sync_from_local.py（增量重建+清洗+扫描）
   → git diff 复核 → commit + push → 入项项目 /plugin update 生效
 ```
 

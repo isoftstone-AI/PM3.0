@@ -133,6 +133,7 @@ def make_fake_source(ai_root: Path, global_root: Path):
     (ai_root / "skills" / "demo" / "temp").mkdir()
     (ai_root / "skills" / "demo" / "temp" / "junk.md").write_text("junk", encoding="utf-8")
     (ai_root / "skills" / "demo" / ".DS_Store").write_bytes(b"\x00")
+    (ai_root / "skills" / "demo" / "SKILL.md.bak").write_text("old", encoding="utf-8")
     (ai_root / "CLAUDE.md").write_text("# rules\n", encoding="utf-8")
     (global_root / "skills" / "mobile").mkdir(parents=True)
     (global_root / "skills" / "mobile" / "SKILL.md").write_text("mobile", encoding="utf-8")
@@ -168,6 +169,7 @@ class TestSync(unittest.TestCase):
         self.assertTrue((demo / "SKILL.md").exists())
         self.assertFalse((demo / "temp").exists())
         self.assertFalse((demo / ".DS_Store").exists())
+        self.assertFalse((demo / "SKILL.md.bak").exists())
         self.assertTrue((self.repo / "plugins/pf/templates/CLAUDE.md").exists())
         self.assertTrue((self.repo / "plugins/pm/skills/mobile/SKILL.md").exists())
 
