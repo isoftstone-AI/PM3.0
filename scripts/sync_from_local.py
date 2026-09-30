@@ -16,8 +16,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PATTERNS_LOCAL = SCRIPT_DIR / "leak_patterns.local"
 PATTERNS_EXAMPLE = SCRIPT_DIR / "leak_patterns.example"
 
-# scan_leaks 只扫产出内容；scripts/ 自身含黑名单示例字符串，必须排除
-SCAN_TARGETS = ["plugins", "README.md", "docs", ".claude-plugin"]
+# 全仓扫描（含 scripts/）：脚本与测试已不含真实值，examples 为示例值；
+# 不设排除区，未来任何文件（含维护脚本）混入真实密钥都会被闸门拦下
+SCAN_TARGETS = ["plugins", "README.md", "docs", ".claude-plugin", "scripts"]
 
 HOME = Path.home()
 DEFAULT_AI_ROOT = HOME / "work" / "个人积累" / "ai"
@@ -56,13 +57,14 @@ CONTENT_EDITS = {
 
 
 def load_leak_patterns(path: Path = PATTERNS_LOCAL) -> list[str]:
-    """Load blacklist from git-ignored local file; fall back to minimal default."""
+    """Load blacklist from git-ignored local file. Missing file is fatal (fail-closed):
+    running sync without the real blacklist would let credential leaks through the gate."""
     if path.exists():
         lines = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()]
         return [ln for ln in lines if ln and not ln.startswith("#")]
-    print(f"NOTE: {path} not found — using minimal default blacklist "
-          f"(copy {PATTERNS_EXAMPLE.name} and fill real values)", file=sys.stderr)
-    return [str(HOME)]
+    print(f"ERROR: {path} not found — refusing to run with a weak blacklist.\n"
+          f"Copy {PATTERNS_EXAMPLE.name} to {path.name} and fill in the real values.", file=sys.stderr)
+    sys.exit(2)
 
 
 def _iter_content_files(repo: Path):
@@ -79,10 +81,13 @@ def _iter_content_files(repo: Path):
             yield f
 
 
-def scan_leaks(repo: Path, patterns: list[str]) -> list[str]:
-    """Return leak reports for produced content. Empty list means clean."""
+def scan_leaks(repo: Path, patterns: list[str], skip: frozenset = frozenset()) -> list[str]:
+    """Return leak reports for produced content. Empty list means clean.
+    skip: resolved paths to exempt (the blacklist file itself carries the real values)."""
     hits = []
     for f in _iter_content_files(repo):
+        if f.resolve() in skip:
+            continue
         try:
             text = f.read_text(encoding="utf-8")
         except (UnicodeDecodeError, ValueError):
@@ -157,7 +162,7 @@ def sync(ai_root: Path, global_root: Path, repo: Path,
         if not p.exists():
             raise FileNotFoundError(f"expected file for cleaning missing: {p}")
         clean_file(p, file_edits)
-    hits = scan_leaks(repo, leak_patterns)
+    hits = scan_leaks(repo, leak_patterns, skip=frozenset({PATTERNS_LOCAL.resolve()}))
     if hits:
         print("LEAK SCAN FAILED — push is forbidden:", file=sys.stderr)
         for h in hits:

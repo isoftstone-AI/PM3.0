@@ -47,10 +47,12 @@ class TestLoadPatterns(unittest.TestCase):
             p.write_text("# comment\n\nSECRET-A\n  SECRET-B  \n", encoding="utf-8")
             self.assertEqual(load_leak_patterns(p), ["SECRET-A", "SECRET-B"])
 
-    def test_missing_file_falls_back_to_home(self):
+    def test_missing_file_fails_closed(self):
         with tempfile.TemporaryDirectory() as td:
             p = Path(td) / "nope"
-            self.assertEqual(load_leak_patterns(p), [str(Path.home())])
+            with self.assertRaises(SystemExit) as cm:
+                load_leak_patterns(p)
+            self.assertEqual(cm.exception.code, 2)
 
 
 class TestScanLeaks(unittest.TestCase):
@@ -78,12 +80,12 @@ class TestScanLeaks(unittest.TestCase):
             (repo / "README.md").write_text("contact FAKE-USER-2", encoding="utf-8")
             self.assertTrue(scan_leaks(repo, FAKE_PATTERNS))
 
-    def test_scripts_dir_is_not_scanned(self):
+    def test_scripts_dir_is_scanned(self):
         with tempfile.TemporaryDirectory() as td:
             repo = Path(td)
             (repo / "scripts").mkdir(parents=True)
-            (repo / "scripts" / "sync_from_local.py").write_text('P = ["FAKE-PWD-1"]', encoding="utf-8")
-            self.assertEqual(scan_leaks(repo, FAKE_PATTERNS), [])
+            (repo / "scripts" / "helper.py").write_text('P = ["FAKE-PWD-1"]', encoding="utf-8")
+            self.assertTrue(scan_leaks(repo, FAKE_PATTERNS))
 
     def test_binary_file_skipped(self):
         with tempfile.TemporaryDirectory() as td:
@@ -91,6 +93,18 @@ class TestScanLeaks(unittest.TestCase):
             (repo / "plugins").mkdir()
             (repo / "plugins" / "blob.bin").write_bytes(b"\x00\xff\xfe")
             self.assertEqual(scan_leaks(repo, FAKE_PATTERNS), [])
+
+    def test_skip_paths_exempt_blacklist_carrier(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            (repo / "scripts").mkdir()
+            (repo / "scripts" / "patterns.local").write_text("pwd=FAKE-PWD-1", encoding="utf-8")
+            (repo / "plugins").mkdir()
+            (repo / "plugins" / "normal.md").write_text("pwd=FAKE-PWD-1", encoding="utf-8")
+            hits = scan_leaks(repo, FAKE_PATTERNS,
+                              skip=frozenset({(repo / "scripts" / "patterns.local").resolve()}))
+            self.assertEqual(len(hits), 1)
+            self.assertIn("normal.md", hits[0])
 
 
 class TestCleanContent(unittest.TestCase):

@@ -174,7 +174,7 @@ git diff                              # 人工复核（重点：清洗结果与�
 git add plugins && git commit && git push
 ```
 
-- 泄漏扫描黑名单在 `scripts/leak_patterns.local`（git 忽略，不入库；从 `leak_patterns.example` 复制后填入真实值），文件缺失时回退最小默认集；扫描失败（退出码 2）禁止 push
+- 泄漏扫描黑名单在 `scripts/leak_patterns.local`（git 忽略，不入库；从 `leak_patterns.example` 复制后填入真实值），缺失时直接报错拒绝执行；扫描范围含 scripts/ 全仓，扫描失败（退出码 2）禁止 push
 - push 前执行 `claude plugin validate plugins/pm3-frontend`（另外两个同理）校验 skill frontmatter（如 argument-hint 以 `[` 开头必须加引号，否则 YAML 解析失败、元数据静默丢失）
 - 新增 skill 时：在脚本 `COPY_PLAN` 加一行，跑同步
 - 结构设计文档：`docs/spec/2026-09-30-skill-marketplace-design.md`

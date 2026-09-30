@@ -168,3 +168,13 @@ mkdir -p .claude/rules && cp -r ~/.claude/plugins/cache/PM3.0/plugins/pm3-fronte
 - 不处理 gitee 个人仓库（ai.git）本身的任何变更
 - 不修改现有 `pm3.0_frontend/.claude` 符号链接（本机继续用个人目录）
 - 不编写自动化 CI（同步由手动触发脚本完成，YAGNI）
+
+## 10. 附注：发布后实现演化（2026-09-30 安全加固，与上文偏差以本节为准）
+
+| 上文设计 | 现实现 | 原因 |
+|----------|--------|------|
+| CLAUDE.md 登录两节「整节删除」（4.1） | 保留章节结构，账密置占位符（`<禅道地址>`/`<填写账号>`/`<填写密码>`）+ 「未填写前跳过本节」说明，入项用户自填 | 用户要求占位自填；说明防下游 Claude 误用占位符登录 |
+| 泄漏黑名单内置脚本 `LEAK_PATTERNS`（4.3） | 外置 `scripts/leak_patterns.local`（git 忽略）+ 入库 `leak_patterns.example` 示例；缺失即报错退出（fail-closed） | 黑名单本身是明文密钥，入库即二次泄密 |
+| 扫描范围排除 scripts/ | 扫描含 scripts/ 全仓 | 脚本内已无真实值（个人路径正则运行时由 HOME 构造），不设盲区 |
+| — | workflow-agent `argument-hint` 值加引号 | 以 `[` 开头被 YAML 解析为流式数组报错，元数据静默丢失 |
+| — | 发布历史中明文密钥与误提交 `__pycache__/*.pyc` 已用 git filter-repo 重写清除并强推 | 仓库为 PUBLIC，历史含密钥等同泄漏 |
